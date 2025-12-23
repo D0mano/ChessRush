@@ -6,4 +6,4 @@
 [Black "Player_2"]
 [Result "*"]
 [FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"]
-*
+1. e4 c4 Nc3 bxc3 Nf3 exd5 Ne5 Qa4+ Nxd7 d6 Nb6+ Nd5 Qxb5 Be2 f3 gxf3 f4 O-O Bg4 Re1+ Qxc6 Qa8 Qxb8+ Qxd8+ Qd7+ f5+ *

@@ -138,10 +138,10 @@ def is_legal_move(game, original_x, original_y, des_x, des_y, ignore_turn=False)
             return False
 
     # Check for castling moves
-    if (des_x, des_y) in QUEEN_SIDE_CASTLE and original.nb_move == 0:
+    if (original.color == WHITE and (des_x, des_y) == QUEEN_SIDE_CASTLE[1]) or (original.color == BLACK and (des_x, des_y) == QUEEN_SIDE_CASTLE[0])  and original.nb_move == 0:
         if original.type_piece == KING:
             return can_castle_queen_side(game, original.color)
-    elif (des_x, des_y) in KING_SIDE_CASTLE and original.nb_move == 0:
+    elif (original.color == WHITE and (des_x, des_y) == KING_SIDE_CASTLE[1]) or (original.color == BLACK and (des_x, des_y) == KING_SIDE_CASTLE[0]) and original.nb_move == 0:
         if original.type_piece == KING:
             return can_castle_king_side(game, original.color)
 
@@ -572,7 +572,7 @@ def is_safe_move(game, original_x, original_y, des_x, des_y, color):
         bool: True if the move is safe, False otherwise
     """
     # Create a copy of the board and simulate the move
-    game.bord_copy = game.copy()
+    game.bord_copy = game.copy()['bord']
     move_simu(game.bord_copy, original_x, original_y, des_x, des_y)
     # Check if the king would be in check after the move
     return not is_check_simu(game.bord_copy, color)
@@ -650,11 +650,15 @@ def move(game, original_x, original_y, des_x, des_y):
         return
 
     capture = False
+    capture_piece = None
     if game.bord[des_y][des_x] is not None:
         capture = True
+        capture_piece = game.bord[des_y][des_x].type_piece
 
     # Handle en passant
     if can_en_passant(game, original_x, original_y, des_x, des_y):
+        capture = True
+        capture_piece = game.bord[original_y][des_x].type_piece
         movement = execute_en_passant(game, original_x, original_y, des_x, des_y)
         draw_bord(game.screen, game)
         game.update()
@@ -667,7 +671,9 @@ def move(game, original_x, original_y, des_x, des_y):
             'to_x': des_x,
             'to_y': des_y,
             'en_passant': True,
-            'castle': False
+            'castle': False,
+            'capture_piece': capture_piece
+
         }
         return movement
 
@@ -687,10 +693,10 @@ def move(game, original_x, original_y, des_x, des_y):
             'to_x': des_x,
             'to_y': des_y,
             'en_passant': False,
-            'castle': True}
+            'castle': True,
+            'capture_piece': capture_piece}
         return movement
     elif piece.type_piece == KING and (des_x, des_y) == piece.king_castle and piece.nb_move == 0:
-        piece.nb_move += 1
         movement = execute_castle(game, piece.color, True)
         draw_bord(game.screen, game)
         game.update()
@@ -703,7 +709,8 @@ def move(game, original_x, original_y, des_x, des_y):
             'to_x': des_x,
             'to_y': des_y,
             'en_passant': False,
-            'castle': True}
+            'castle': True,
+            'capture_piece': capture_piece}
         return movement
 
     # Execute normal move
@@ -752,7 +759,8 @@ def move(game, original_x, original_y, des_x, des_y):
         'to_x': des_x,
         'to_y': des_y,
         'en_passant': False,
-        'castle': False
+        'castle': False,
+        'capture_piece': capture_piece
     }
     return notation
 

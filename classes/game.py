@@ -1,7 +1,8 @@
 
 from classes.pieces import Pieces
-from utils.functions import *
+
 from classes.interface import *
+from classes.AI import*
 
 
 
@@ -37,6 +38,9 @@ class Game:
         self.move_illegal_sound = pygame.mixer.Sound("assets/sounds/illegal.mp3")
         self.capture_sound = pygame.mixer.Sound("assets/sounds/capture.mp3")
         self.castle_sound = pygame.mixer.Sound("assets/sounds/castle.mp3")
+        self.ai = AI(self)
+        self.ai_enabled = True
+
 
 
     def set_screen(self,screen):
@@ -86,7 +90,7 @@ class Game:
 
     def copy(self):
         bord = self.bord
-        copy = []
+        grid = []
         for y in range(8):
             row = []
             for x in range(8):
@@ -95,8 +99,22 @@ class Game:
                     row.append(None)
                 else:
                     row.append((piece.type_piece,piece.color,piece.movement_type,piece.nb_move))
-            copy.append(row)
-        return copy
+            grid.append(row)
+
+        if self.last_move:
+            last_move_info = (self.last_move['piece_type'],
+                              self.last_move['from_x'],
+                              self.last_move['from_y'],
+                              self.last_move['to_x'],
+                              self.last_move['to_y'])
+        else :
+            last_move_info = None
+        state = {'bord':grid,
+                 'last_move_info':last_move_info,
+                 'turn':self.turn,
+                 'nb_turn':self.nb_turn
+                 }
+        return state
 
     def is_checkmate(self,color):
         if not self.check:
@@ -181,6 +199,7 @@ class Game:
         list_coup = []
         self.start_time()
         while self.is_playing:
+
             if self.end_game():
                 self.is_playing = False
 
@@ -190,6 +209,20 @@ class Game:
             display_timer(self)
             if not self.time_is_stop:
                 self.decrement_time(self.turn, dt)
+
+            if self.ai_enabled and self.turn == BLACK and not self.end_game():
+
+                # On rafraîchit l'écran pour voir le dernier coup blanc
+                pygame.display.flip()
+
+                # L'IA réfléchit
+                print("L'IA réfléchit...")
+                # Appel à ton IA (profondeur 2 ou 3 conseillée pour Python pur)
+                coup_ia = self.ai.get_best_move(depth=2)
+
+                if coup_ia:
+                    # On joue le coup avec la fonction normale qui gère l'affichage et le son
+                    move(self, coup_ia[0], coup_ia[1], coup_ia[2], coup_ia[3])
 
 
 
@@ -222,6 +255,9 @@ class Game:
                         self.is_playing = False
                         self.reinitialise_game()
                         self.in_menu = True
+                    if event.key == pygame.K_t:
+                        print(generate_legal_moves(self.bord_copy,self.turn))
+
 
             pygame.display.flip()
         if coup:

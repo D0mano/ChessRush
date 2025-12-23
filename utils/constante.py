@@ -276,3 +276,24 @@ THIRTY_MIN = 3 * TEN_MIN
 
 ONE_HOUR = 2 * THIRTY_MIN
 
+#========== STATE BORD GESTION ===========#
+
+PIECE_TYPE =  0    #Index of the piece type in the state_copy data structure and in the last_move_info dict
+PIECE_COLOR = 1    #Index of the piece color in the state_copy data structure
+PIECE_MOVEMENT = 2    #Index of the piece movement in the state_copy data structure
+PIECE_NB_MOVEMENT = 3    #Index of the piece number of move in the state_copy data structure
+FROM_X = 1    #Index of the x pos in the last_move_info dict
+FROM_Y = 2    #Index of the y pos in the last_move_info dict
+TO_X = 3    #Index of the x des in the last_move_info dict
+TO_Y = 4    #Index of the y des in the last_move_info dict
+
+
+
+#==================== PIECE EVALUATION =======================#
+
+PIECE_VALUE = {PAWN:10,
+                BISHOP:30,
+                KNIGHT:30,
+                ROOK:50,
+                QUEEN:90,
+               KING:0}
