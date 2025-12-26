@@ -213,7 +213,7 @@ class Game:
             if self.ai_enabled  and not self.end_game():
                 # On rafraîchit l'écran pour voir le dernier
                 pygame.display.flip()
-                if self.turn == WHITE:
+                if self.turn == BLACK:
 
 
 
