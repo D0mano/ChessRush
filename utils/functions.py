@@ -1,6 +1,7 @@
 import pygame
 import math
 
+from classes.AI import *
 from utils.constante import *
 
 # Global variable to track selected squares on the chessboard
@@ -136,14 +137,14 @@ def is_legal_move(game, original_x, original_y, des_x, des_y, ignore_turn=False)
     if not ignore_turn:
         if original.color != game.turn:
             return False
-
+    valid_direction = False
     # Check for castling moves
-    if (original.color == WHITE and (des_x, des_y) == QUEEN_SIDE_CASTLE[1]) or (original.color == BLACK and (des_x, des_y) == QUEEN_SIDE_CASTLE[0])  and original.nb_move == 0:
-        if original.type_piece == KING:
-            return can_castle_queen_side(game, original.color)
-    elif (original.color == WHITE and (des_x, des_y) == KING_SIDE_CASTLE[1]) or (original.color == BLACK and (des_x, des_y) == KING_SIDE_CASTLE[0]) and original.nb_move == 0:
-        if original.type_piece == KING:
-            return can_castle_king_side(game, original.color)
+    if original.type_piece == KING:
+        if (d_x,d_y) not in original.movement:
+            if (original.color == WHITE and (des_x, des_y) == QUEEN_SIDE_CASTLE[1]) or (original.color == BLACK and (des_x, des_y) == QUEEN_SIDE_CASTLE[0])  and original.nb_move == 0:
+                    return can_castle_queen_side(game, original.color)
+            elif (original.color == WHITE and (des_x, des_y) == KING_SIDE_CASTLE[1]) or (original.color == BLACK and (des_x, des_y) == KING_SIDE_CASTLE[0]) and original.nb_move == 0:
+                    return can_castle_king_side(game, original.color)
 
     valid_direction = False
 
@@ -184,61 +185,6 @@ def is_legal_move(game, original_x, original_y, des_x, des_y, ignore_turn=False)
         return is_legal_move_pawn(game, original_x, original_y, des_x, des_y)
 
 
-def is_legal_move_simu(bord, o_x, o_y, d_x, d_y):
-    """
-    Check if a move is legal in a simulated board state (used for move validation).
-
-    Args:
-        bord (list): 2D list representing the board state
-        o_x (int): Origin x coordinate
-        o_y (int): Origin y coordinate
-        d_x (int): Destination x coordinate
-        d_y (int): Destination y coordinate
-
-    Returns:
-        bool: True if the move is legal, False otherwise
-    """
-    case_sta = bord[o_y][o_x]
-    case_end = bord[d_y][d_x]
-    distance_x = d_x - o_x
-    distance_y = d_y - o_y
-    valid_direction = False
-
-    # Handle non-pawn pieces
-    if case_sta[0] != PAWN:
-        if case_sta[2] == SLIDING:
-            # Check if move direction is valid for sliding pieces
-            for direct in MOVEMENT[case_sta[0]]:
-                if is_collinear((distance_x, distance_y), direct):
-                    valid_direction = True
-                    break
-
-            # Check if path is clear
-            if valid_direction:
-                step_x = (distance_x // abs(distance_x)) if distance_x != 0 else 0
-                step_y = (distance_y // abs(distance_y)) if distance_y != 0 else 0
-                x, y = o_x + step_x, o_y + step_y
-                while (x, y) != (d_x, d_y):
-                    if bord[y][x] is not None:
-                        return False
-                    x += step_x
-                    y += step_y
-        else:
-            # For non-sliding pieces
-            valid_direction = (distance_x, distance_y) in MOVEMENT[case_sta[0]]
-
-        # Check destination
-        if case_end is None:
-            return valid_direction
-
-        # Cannot capture own piece
-        if case_sta[1] == case_end[1]:
-            return False
-        elif valid_direction:
-            return True
-    else:
-        # Handle pawn moves
-        return is_legal_move_pawn_simu(bord, o_x, o_y, d_x, d_y)
 
 
 def show_possible_move(game, pos):
@@ -329,62 +275,7 @@ def is_legal_move_pawn(game, orig_x, orig_y, des_x, des_y):
     return False
 
 
-def is_legal_move_pawn_simu(bord, o_x, o_y, d_x, d_y):
-    """
-    Check if a pawn move is legal in a simulated board state.
 
-    Args:
-        bord (list): 2D list representing the board state
-        o_x (int): Origin x coordinate
-        o_y (int): Origin y coordinate
-        d_x (int): Destination x coordinate
-        d_y (int): Destination y coordinate
-
-    Returns:
-        bool: True if the pawn move is legal, False otherwise
-    """
-    original = bord[o_y][o_x]
-    destination = bord[d_y][d_x]
-    color = original[1]
-
-    # Calculate movement vector
-    distance_x = d_x - o_x
-    distance_y = d_y - o_y
-
-    # Check diagonal capture moves based on color
-    if color == WHITE:
-        if (distance_x, distance_y) in DIRECTIONS_WHITE_PAWN_2 and destination is not None:
-            return True
-        # Check forward moves
-        if original[3] == 0:  # Pawn hasn't moved
-            valid_direction = (distance_x, distance_y) in DIRECTIONS_WHITE_PAWN_1
-        else:
-            valid_direction = (distance_x, distance_y) in DIRECTIONS_WHITE_PAWN
-    else:  # BLACK
-        if (distance_x, distance_y) in DIRECTIONS_BLACK_PAWN_2 and destination is not None:
-            return True
-        # Check forward moves
-        if original[3] == 0:  # Pawn hasn't moved
-            valid_direction = (distance_x, distance_y) in DIRECTIONS_BLACK_PAWN_1
-        else:
-            valid_direction = (distance_x, distance_y) in DIRECTIONS_BLACK_PAWN
-
-    # Check if path is clear
-    if valid_direction:
-        step_x = (distance_x // abs(distance_x)) if distance_x != 0 else 0
-        step_y = (distance_y // abs(distance_y)) if distance_y != 0 else 0
-        x, y = o_x + step_x, o_y + step_y
-        while (x, y) != (d_x, d_y):
-            if bord[y][x] is not None:
-                return False
-            x += step_x
-            y += step_y
-
-    # Pawn can only move to empty square (for non-capture moves)
-    if destination is None:
-        return valid_direction
-
-    return False
 
 
 def king_pos(bord, color):
@@ -405,24 +296,6 @@ def king_pos(bord, color):
                 if piece.type_piece == KING and piece.color == color:
                     return x, y
 
-
-def king_pos_simu(bord, color):
-    """
-    Find the position of the king in a simulated board state.
-
-    Args:
-        bord (list): 2D list representing the simulated board state
-        color (int): Color of the king to find
-
-    Returns:
-        tuple: Position (x, y) of the king, or None if not found
-    """
-    for y in range(8):
-        for x in range(8):
-            piece = bord[y][x]
-            if piece is not None:
-                if piece[0] == KING and piece[1] == color:
-                    return x, y
 
 
 def is_check(game, color):
@@ -460,30 +333,6 @@ def is_check(game, color):
     return False
 
 
-def is_check_simu(bord, color):
-    """
-    Check if the king is in check in a simulated board state.
-
-    Args:
-        bord (list): 2D list representing the board state
-        color (int): Color of the king to check
-
-    Returns:
-        bool: True if the king is in check, False otherwise
-    """
-    pos = king_pos_simu(bord, color)
-    if pos is None:
-        return False
-
-    # Check if any opponent piece can attack the king
-    adversary_color = -color
-    for y in range(8):
-        for x in range(8):
-            piece = bord[y][x]
-            if piece is not None and piece[1] == adversary_color:
-                if is_legal_move_simu(bord, x, y, pos[0], pos[1]):
-                    return True
-    return False
 
 
 def draw_arrow_filled(surface, color, start_pos, end_pos, arrow_width=5, arrow_head_size=15):
@@ -766,11 +615,7 @@ def move(game, original_x, original_y, des_x, des_y):
 
 
 
-def move_simu(bord,o_x,o_y,d_x,d_y):
 
-    piece = bord[o_y][o_x]
-    bord[d_y][d_x] = piece
-    bord[o_y][o_x] = None
 
 
 def algebraic_notation( game,original_x,original_y, des_x, des_y, capture, check, checkmate, type_piece,promotion):

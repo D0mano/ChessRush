@@ -210,20 +210,32 @@ class Game:
             if not self.time_is_stop:
                 self.decrement_time(self.turn, dt)
 
-            if self.ai_enabled and self.turn == BLACK and not self.end_game():
-
-                # On rafraîchit l'écran pour voir le dernier coup blanc
+            if self.ai_enabled  and not self.end_game():
+                # On rafraîchit l'écran pour voir le dernier
                 pygame.display.flip()
+                if self.turn == WHITE:
 
-                # L'IA réfléchit
-                print("L'IA réfléchit...")
-                # Appel à ton IA (profondeur 2 ou 3 conseillée pour Python pur)
-                coup_ia = self.ai.get_best_move(depth=2)
 
-                if coup_ia:
-                    # On joue le coup avec la fonction normale qui gère l'affichage et le son
-                    move(self, coup_ia[0], coup_ia[1], coup_ia[2], coup_ia[3])
 
+                    print("The White AI is thinking ...")
+                    # Appel à ton IA (profondeur 2 ou 3 conseillée pour Python pur)
+                    coup_ia = self.ai.get_best_move(depth=2)
+                #else:
+                #    print("The Black AI is thinking ...")
+                #    coup_ia = self.ai.get_best_move2(depth=2)
+
+                    if coup_ia:
+                        # On joue le coup avec la fonction normale qui gère l'affichage et le son
+                        movement = move(self, coup_ia[0], coup_ia[1], coup_ia[2], coup_ia[3])
+
+                        if movement is not None:
+                            if self.turn == BLACK:
+                                coup.append(movement)
+
+                            else:
+                                coup.append(movement)
+                                list_coup.append(coup)
+                                coup = []
 
 
             for event in pygame.event.get():

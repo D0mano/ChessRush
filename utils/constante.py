@@ -291,9 +291,9 @@ TO_Y = 4    #Index of the y des in the last_move_info dict
 
 #==================== PIECE EVALUATION =======================#
 
-PIECE_VALUE = {PAWN:10,
-                BISHOP:30,
-                KNIGHT:30,
-                ROOK:50,
-                QUEEN:90,
-               KING:0}
+PIECE_VALUE = {PAWN:100,
+                BISHOP:320,
+                KNIGHT:330,
+                ROOK:500,
+                QUEEN:900,
+               KING:20000}
