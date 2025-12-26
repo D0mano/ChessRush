@@ -188,7 +188,7 @@ def is_legal_move_pawn_simu(bord, o_x, o_y, d_x, d_y):
 
     # Check diagonal capture moves based on color
     if color == WHITE:
-        if (distance_x, distance_y) in DIRECTIONS_WHITE_PAWN_2 and destination is not None:
+        if (distance_x, distance_y) in DIRECTIONS_WHITE_PAWN_2 and destination is not None and destination[PIECE_COLOR] == BLACK:
             return True
         # Check forward moves
         if original[3] == 0:  # Pawn hasn't moved
@@ -196,7 +196,7 @@ def is_legal_move_pawn_simu(bord, o_x, o_y, d_x, d_y):
         else:
             valid_direction = (distance_x, distance_y) in DIRECTIONS_WHITE_PAWN
     else:  # BLACK
-        if (distance_x, distance_y) in DIRECTIONS_BLACK_PAWN_2 and destination is not None:
+        if (distance_x, distance_y) in DIRECTIONS_BLACK_PAWN_2 and destination is not None and destination[PIECE_COLOR] == WHITE:
             return True
         # Check forward moves
         if original[3] == 0:  # Pawn hasn't moved
@@ -493,23 +493,80 @@ def material_eval(state):
     Positive = White Advantage, Negative = Black Advantage
     """
     board = state['bord']
-    value = 0
+    score_mat = 0
     for y in range(8):
         for x in range(8):
             piece = board[y][x]
             if piece is not None:
                 if piece[PIECE_COLOR] == WHITE:
-                    value += PIECE_VALUE[piece[PIECE_TYPE]]
+                    score_mat += PIECE_VALUE[piece[PIECE_TYPE]]
                 else:
-                    value -= PIECE_VALUE[piece[PIECE_TYPE]]
+                    score_mat -= PIECE_VALUE[piece[PIECE_TYPE]]
 
-    return value
+    return score_mat
+
+def total_material(state):
+    board = state['bord']
+    total_mat = 0
+    for y in range(8):
+        for x in range(8):
+            piece = board[y][x]
+            if piece is not None and piece[PIECE_TYPE] != KING:
+                total_mat += PIECE_VALUE[piece[PIECE_TYPE]]
+    return total_mat
+
+def is_endgame(state):
+    return total_material(state) < 1300
+
 
 def mobility_eval(board):
     white_moves = len(generate_legal_moves(board, WHITE))
     black_moves = len(generate_legal_moves(board, BLACK))
     return (white_moves - black_moves) * 5
 
+
+def get_position_value(piece,x,y, is_endgame=False):
+    """
+    Obtient la valeur positionnelle d'une pièce
+    """
+    piece_type = piece[PIECE_TYPE]
+    color = piece[PIECE_COLOR]
+
+    if piece_type == KING and is_endgame:
+        table = KING_END_GAME_TABLE
+    elif piece_type == KING:
+        table = KING_MIDDLE_GAME_TABLE
+    elif piece_type == QUEEN:
+        table = QUEEN_TABLE
+    elif piece_type == ROOK:
+        table = ROOK_TABLE
+    elif piece_type == PAWN:
+        table = PAWN_TABLE
+    elif piece_type == KNIGHT:
+        table = KNIGHT_TABLE
+    elif piece_type == BISHOP:
+        table = BISHOP_TABLE
+    else:
+        return 0
+
+    # Pour les pièces noires, on inverse le tableau
+    if color == BLACK:
+        y = 7 - y
+
+    return table[y][x]
+
+def positional_eval(state,is_endgame=False):
+    board = state['bord']
+    pos_eval = 0
+    for y in range(8):
+        for x in range(8):
+            piece = board[y][x]
+            if piece is not None:
+                if piece[PIECE_COLOR] == WHITE:
+                    pos_eval += get_position_value(piece,x,y,is_endgame)
+                else:
+                    pos_eval -= get_position_value(piece,x,y,is_endgame)
+    return pos_eval
 
 
 
@@ -530,7 +587,9 @@ class AI:
 
         mobility_score = mobility_eval(board)
 
-        value += material_score + mobility_score
+        positional_score = positional_eval(state,is_endgame(state))
+
+        value += material_score + mobility_score + positional_score
 
 
         if is_check_simu(board,WHITE):

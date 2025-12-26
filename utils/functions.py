@@ -247,7 +247,7 @@ def is_legal_move_pawn(game, orig_x, orig_y, des_x, des_y):
         return True
 
     # Check for diagonal capture
-    if destination is not None:
+    if destination is not None and destination.color != original.color:
         if (d_x, d_y) in original.movement_2:
             return True
 
