@@ -164,7 +164,7 @@ Games are automatically saved in `game_save.txt` using standard PGN format:
 
 ## Future Enhancements
 
-- [ ] AI opponent with difficulty levels
+- [x] AI opponent with difficulty levels
 - [ ] Move history viewer
 - [ ] Undo/redo functionality
 - [ ] Custom piece promotion choice
