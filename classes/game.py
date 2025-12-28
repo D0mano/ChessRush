@@ -213,16 +213,13 @@ class Game:
             if self.ai_enabled  and not self.end_game():
                 # On rafraîchit l'écran pour voir le dernier
                 pygame.display.flip()
-                if self.turn == BLACK:
-
-
-
+                if self.turn == WHITE:
                     print("The White AI is thinking ...")
-                    # Appel à ton IA (profondeur 2 ou 3 conseillée pour Python pur)
+
                     coup_ia = self.ai.get_best_move(depth=2)
                 #else:
-                #    print("The Black AI is thinking ...")
-                #    coup_ia = self.ai.get_best_move2(depth=2)
+                #   print("The Black AI is thinking ...")
+                #   coup_ia = self.ai.get_best_move(depth=2)
 
                     if coup_ia:
                         # On joue le coup avec la fonction normale qui gère l'affichage et le son
@@ -268,7 +265,8 @@ class Game:
                         self.reinitialise_game()
                         self.in_menu = True
                     if event.key == pygame.K_t:
-                        print(generate_legal_moves(self.bord_copy,self.turn))
+                        print(is_endgame(self.copy()))
+
 
 
             pygame.display.flip()

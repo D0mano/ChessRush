@@ -297,3 +297,166 @@ PIECE_VALUE = {PAWN:100,
                 ROOK:500,
                 QUEEN:900,
                KING:20000}
+
+#================= PUZZLE ====================#
+
+MAT = [
+    # Ligne 8 (index 0) - Pièces noires
+    [(BLACK, ROOK), EMPTY, EMPTY, EMPTY, EMPTY, (BLACK, ROOK), EMPTY, EMPTY],
+
+    # Ligne 7 (index 1) - Pions noirs
+    [(BLACK, PAWN), (BLACK, PAWN), EMPTY, EMPTY, EMPTY, EMPTY, (BLACK, PAWN), EMPTY],
+
+    # Ligne 6 (index 2)
+    [EMPTY, EMPTY, (BLACK, KNIGHT), EMPTY, (BLACK, BISHOP), (BLACK, PAWN), (BLACK, KING), EMPTY],
+
+    # Ligne 5 (index 3)
+    [EMPTY, EMPTY, (BLACK, BISHOP), (WHITE, KNIGHT), EMPTY, EMPTY, EMPTY, EMPTY],
+
+    # Ligne 4 (index 4)
+    [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, (WHITE, PAWN)],
+
+    # Ligne 3 (index 5)
+    [(BLACK, QUEEN), EMPTY, (WHITE, PAWN), EMPTY, EMPTY, EMPTY, (WHITE, KNIGHT), EMPTY],
+
+    # Ligne 2 (index 6) - Pions blancs
+    [(WHITE, PAWN), EMPTY, EMPTY, EMPTY, EMPTY, (WHITE, PAWN), (WHITE, PAWN), EMPTY],
+
+    # Ligne 1 (index 7) - Pièces blanches
+    [(WHITE, ROOK), EMPTY, EMPTY, (WHITE, QUEEN), EMPTY, (WHITE, ROOK), (WHITE, KING), EMPTY]
+]
+
+# Puzzle 1 : Mat du Couloir
+PLATEAU_PUZZLE_1 = [
+    # Ligne 8 (index 0)
+    [(BLACK, ROOK), (BLACK, KNIGHT), EMPTY, EMPTY,
+     EMPTY, EMPTY, EMPTY, (BLACK, ROOK)],
+
+    # Ligne 7 (index 1)
+    [(BLACK, PAWN), EMPTY, EMPTY, (BLACK, PAWN),
+     EMPTY, (BLACK, PAWN), (BLACK, PAWN), EMPTY],
+
+    # Ligne 6 (index 2)
+    [EMPTY, (BLACK, PAWN), EMPTY, EMPTY,
+     EMPTY, (BLACK, KING), EMPTY, EMPTY],
+
+    # Ligne 5 (index 3)
+    [EMPTY, EMPTY, EMPTY, EMPTY,
+     EMPTY, (BLACK, QUEEN), EMPTY, EMPTY],
+
+    # Ligne 4 (index 4)
+    [EMPTY, EMPTY, EMPTY, EMPTY,
+     EMPTY, (WHITE, KNIGHT), EMPTY, EMPTY],
+
+    # Ligne 3 (index 5)
+    [(WHITE, BISHOP), EMPTY, (WHITE, PAWN), EMPTY,
+     EMPTY, EMPTY, EMPTY, EMPTY],
+
+    # Ligne 2 (index 6)
+    [(WHITE, PAWN), EMPTY, EMPTY, EMPTY,
+     EMPTY, (WHITE, PAWN), (WHITE, PAWN), (WHITE, PAWN)],
+
+    # Ligne 1 (index 7)
+    [EMPTY, EMPTY, EMPTY, EMPTY,
+     (WHITE, ROOK), (WHITE, ROOK), (WHITE, KING), EMPTY]]
+
+PLATEAU_PUZZLE_2 = [
+    # Ligne 8 (index 0)
+    [EMPTY, (WHITE, QUEEN), (BLACK, ROOK), EMPTY,
+     EMPTY, EMPTY, (BLACK, KING), EMPTY],
+
+    # Ligne 7 (index 1)
+    [(BLACK, PAWN), EMPTY, EMPTY, EMPTY,
+     (BLACK, PAWN), (BLACK, PAWN), (BLACK, BISHOP), (BLACK, PAWN)],
+
+    # Ligne 6 (index 2)
+    [EMPTY, EMPTY, EMPTY, EMPTY,
+     EMPTY, EMPTY, (BLACK, PAWN), EMPTY],
+
+    # Ligne 5 (index 3)
+    [(BLACK, QUEEN), EMPTY, EMPTY, (BLACK, PAWN),
+     EMPTY, EMPTY, EMPTY, EMPTY],
+
+    # Ligne 4 (index 4)
+    [EMPTY, EMPTY, EMPTY, (WHITE, PAWN),
+     EMPTY, EMPTY, EMPTY, EMPTY],
+
+    # Ligne 3 (index 5)
+    [EMPTY, EMPTY, EMPTY, (BLACK, ROOK),
+     (WHITE, BISHOP), EMPTY, EMPTY, EMPTY],
+
+    # Ligne 2 (index 6)
+    [EMPTY, EMPTY, EMPTY, EMPTY,
+     EMPTY, (WHITE, PAWN), (WHITE, PAWN), (WHITE, PAWN)],
+
+    # Ligne 1 (index 7)
+    [EMPTY, (WHITE, ROOK), EMPTY, EMPTY,
+     EMPTY, EMPTY, (WHITE, KING), EMPTY]
+]
+
+PLATEAU_PUZZLE_3 = [
+    # Ligne 8 (index 0)
+    [(BLACK, ROOK), (BLACK, KNIGHT), EMPTY, (BLACK, QUEEN),
+     (BLACK, KING), (BLACK, BISHOP), EMPTY, (BLACK, ROOK)],
+
+    # Ligne 7 (index 1)
+    [(BLACK, PAWN), (BLACK, PAWN), EMPTY, EMPTY,
+     EMPTY, (BLACK, PAWN), (BLACK, PAWN), (BLACK, PAWN)],
+
+    # Ligne 6 (index 2)
+    [EMPTY, EMPTY, (BLACK, PAWN), EMPTY,
+     EMPTY, (BLACK, KNIGHT), EMPTY, EMPTY],
+
+    # Ligne 5 (index 3)
+    [EMPTY, EMPTY, EMPTY, EMPTY,
+     (BLACK, PAWN), EMPTY, EMPTY, EMPTY],
+
+    # Ligne 4 (index 4)
+    [EMPTY, EMPTY, EMPTY, EMPTY,
+     (WHITE, KNIGHT), EMPTY, (BLACK, BISHOP), EMPTY],
+
+    # Ligne 3 (index 5)
+    [(WHITE, PAWN), (WHITE, BISHOP), (WHITE, KNIGHT), EMPTY,
+     EMPTY, EMPTY, EMPTY, EMPTY],
+
+    # Ligne 2 (index 6)
+    [EMPTY, (WHITE, PAWN), (WHITE, PAWN), (WHITE, PAWN),
+     EMPTY, (WHITE, PAWN), (WHITE, PAWN), (WHITE, PAWN)],
+
+    # Ligne 1 (index 7)
+    [(WHITE, ROOK), EMPTY, (WHITE, BISHOP), (WHITE, QUEEN),
+     (WHITE, KING), EMPTY, EMPTY, (WHITE, ROOK)]
+]
+
+PLATEAU_PUZZLE_4 = [
+    # Ligne 8 (index 0)
+    [EMPTY, EMPTY, EMPTY, EMPTY,
+     EMPTY, EMPTY, EMPTY, EMPTY],
+
+    # Ligne 7 (index 1)
+    [EMPTY, EMPTY, EMPTY, EMPTY,
+     EMPTY, EMPTY, EMPTY, EMPTY],
+
+    # Ligne 6 (index 2)
+    [EMPTY, EMPTY, EMPTY, EMPTY,
+     EMPTY, EMPTY, EMPTY, EMPTY],
+
+    # Ligne 5 (index 3)
+    [EMPTY, EMPTY, EMPTY, EMPTY,
+     EMPTY, (WHITE, BISHOP), EMPTY, EMPTY],
+
+    # Ligne 4 (index 4)
+    [EMPTY, EMPTY, EMPTY, EMPTY,
+     EMPTY, EMPTY, EMPTY, EMPTY],
+
+    # Ligne 3 (index 5)
+
+
+
+    # Ligne 1 (index 7)
+    [EMPTY, EMPTY, EMPTY, EMPTY,
+     EMPTY, EMPTY, EMPTY, EMPTY],
+    [(BLACK, PAWN), (BLACK, PAWN), (BLACK, PAWN), (WHITE, PAWN), (WHITE, PAWN), (WHITE, PAWN), EMPTY, EMPTY],
+
+    [EMPTY, (BLACK, KING), EMPTY, EMPTY,(WHITE, KING), EMPTY, EMPTY, (WHITE, ROOK)]
+]

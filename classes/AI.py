@@ -335,7 +335,7 @@ def can_castle_king_side_simu(board, color):
             king_x = 4
             rook = board[0][7]
 
-    if king[PIECE_MOVEMENT] > 0:
+    if king[PIECE_NB_MOVEMENT] > 0:
         return False
     if rook is None or rook[PIECE_TYPE] != ROOK or rook[PIECE_COLOR] != color or rook[PIECE_NB_MOVEMENT] > 0:
         return False
@@ -382,7 +382,7 @@ def can_castle_queen_side_simu(board, color):
             king_x = 4
             rook = board[0][0]
 
-    if king[PIECE_MOVEMENT] > 0:
+    if king[PIECE_NB_MOVEMENT] > 0:
         return False
     if rook is None or rook[PIECE_TYPE] != ROOK or rook[PIECE_COLOR] != color or rook[PIECE_NB_MOVEMENT] > 0:
         return False
@@ -505,6 +505,7 @@ def material_eval(state):
 
     return score_mat
 
+
 def total_material(state):
     board = state['bord']
     total_mat = 0
@@ -515,6 +516,7 @@ def total_material(state):
                 total_mat += PIECE_VALUE[piece[PIECE_TYPE]]
     return total_mat
 
+
 def is_endgame(state):
     return total_material(state) < 1300
 
@@ -522,7 +524,7 @@ def is_endgame(state):
 def mobility_eval(board):
     white_moves = len(generate_legal_moves(board, WHITE))
     black_moves = len(generate_legal_moves(board, BLACK))
-    return (white_moves - black_moves) * 5
+    return (white_moves - black_moves) * 3
 
 
 def get_position_value(piece,x,y, is_endgame=False):
@@ -554,6 +556,7 @@ def get_position_value(piece,x,y, is_endgame=False):
         y = 7 - y
 
     return table[y][x]
+
 
 def positional_eval(state,is_endgame=False):
     board = state['bord']
@@ -596,6 +599,8 @@ class AI:
             value -= 50
         if is_check_simu(board,BLACK):
             value += 50
+
+        #value += random.randint(-5, 5)
 
         return value
 

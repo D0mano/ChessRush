@@ -503,15 +503,13 @@ def move(game, original_x, original_y, des_x, des_y):
     if game.bord[des_y][des_x] is not None:
         capture = True
         capture_piece = game.bord[des_y][des_x].type_piece
+    piece = game.bord[original_y][original_x]
 
     # Handle en passant
     if can_en_passant(game, original_x, original_y, des_x, des_y):
         capture = True
         capture_piece = game.bord[original_y][des_x].type_piece
-        movement = execute_en_passant(game, original_x, original_y, des_x, des_y)
-        draw_bord(game.screen, game)
-        game.update()
-        game.switch_turn()
+        notation = execute_en_passant(game, original_x, original_y, des_x, des_y)
         game.capture_sound.play()
         game.last_move = {
             'piece_type': PAWN,
@@ -524,16 +522,9 @@ def move(game, original_x, original_y, des_x, des_y):
             'capture_piece': capture_piece
 
         }
-        return movement
-
-    piece = game.bord[original_y][original_x]
-
     # Handle castling
-    if piece.type_piece == KING and (des_x, des_y) == piece.queen_castle and piece.nb_move == 0:
-        movement = execute_castle(game, piece.color, False)
-        draw_bord(game.screen, game)
-        game.update()
-        game.switch_turn()
+    elif piece.type_piece == KING and (des_x, des_y) == piece.queen_castle and piece.nb_move == 0:
+        notation = execute_castle(game, piece.color, False)
         game.castle_sound.play()
         game.last_move = {
             'piece_type': KING,
@@ -544,12 +535,9 @@ def move(game, original_x, original_y, des_x, des_y):
             'en_passant': False,
             'castle': True,
             'capture_piece': capture_piece}
-        return movement
+
     elif piece.type_piece == KING and (des_x, des_y) == piece.king_castle and piece.nb_move == 0:
-        movement = execute_castle(game, piece.color, True)
-        draw_bord(game.screen, game)
-        game.update()
-        game.switch_turn()
+        notation = execute_castle(game, piece.color, True)
         game.castle_sound.play()
         game.last_move = {
             'piece_type': KING,
@@ -560,24 +548,34 @@ def move(game, original_x, original_y, des_x, des_y):
             'en_passant': False,
             'castle': True,
             'capture_piece': capture_piece}
-        return movement
+    else:
+        # Execute normal move
+        promotion = game.bord[original_y][original_x].promotion(des_x, des_y)
 
-    # Execute normal move
-    piece.nb_move += 1
-    promotion = game.bord[original_y][original_x].promotion(des_x, des_y)
+        # Generate algebraic notation
+        notation = algebraic_notation(game, original_x, original_y, des_x, des_y, capture, game.check, game.checkmate,
+                                      piece.type_piece, promotion)
+        # Update board state
+        game.bord[des_y][des_x] = piece
+        game.bord[original_y][original_x] = None
+        piece.nb_move += 1
+        game.last_move = {
+            'piece_type': piece.type_piece,
+            'from_x': original_x,
+            'from_y': original_y,
+            'to_x': des_x,
+            'to_y': des_y,
+            'en_passant': False,
+            'castle': False,
+            'capture_piece': capture_piece
+        }
+        if promotion:
+            game.update()
 
-    # Generate algebraic notation
-    notation = algebraic_notation(game, original_x, original_y, des_x, des_y, capture, game.check, game.checkmate,
-                                  piece.type_piece, promotion)
 
-    # Update board state
-    game.bord[des_y][des_x] = piece
-    game.bord[original_y][original_x] = None
+
+
     draw_bord(game.screen, game)
-    game.update()
-
-    if promotion:
-        game.update()
 
     # Update game state
     game.increment(game.turn, game.increment_time)
@@ -585,6 +583,8 @@ def move(game, original_x, original_y, des_x, des_y):
     game.check = is_check(game, game.turn)
     game.checkmate = game.is_checkmate(game.turn)
     game.stalemate = game.is_stalemate(game.turn)
+    game.update()
+
 
     # Update notation and play sounds
     if game.checkmate:
@@ -601,16 +601,7 @@ def move(game, original_x, original_y, des_x, des_y):
         game.move_self_sound.play()
 
     # Record the move
-    game.last_move = {
-        'piece_type': piece.type_piece,
-        'from_x': original_x,
-        'from_y': original_y,
-        'to_x': des_x,
-        'to_y': des_y,
-        'en_passant': False,
-        'castle': False,
-        'capture_piece': capture_piece
-    }
+
     return notation
 
 
