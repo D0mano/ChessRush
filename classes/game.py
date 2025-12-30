@@ -221,8 +221,8 @@ class Game:
             if self.ai_enabled  and not self.end_game():
                 # On rafraîchit l'écran pour voir le dernier
                 pygame.display.flip()
-                if self.turn == WHITE:
-                    print("The White AI is thinking ...")
+                if self.turn == BLACK:
+                    print("The Black AI is thinking ...")
 
                     coup_ia = self.ai.get_best_move(depth=2)
                 #else:
@@ -277,6 +277,9 @@ class Game:
                         else:
                             coup = []
                         cancel_move(self)
+
+
+
 
 
 
