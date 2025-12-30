@@ -271,9 +271,11 @@ class Game:
                     if event.key == pygame.K_ESCAPE:
                         self.is_playing = False
                         self.reinitialise_game()
-                    if event.key == pygame.K_t:
-                        print(is_endgame(self.copy()))
                     if event.key == pygame.K_c:
+                        if not coup:
+                            list_coup.pop(len(list_coup)-1)
+                        else:
+                            coup = []
                         cancel_move(self)
 
 

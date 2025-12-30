@@ -71,6 +71,8 @@ chessrush/
 │   ├── game.py            # Main game logic and state management
 │   ├── pieces.py          # Chess piece classes (Pawn, Knight, Bishop, etc.)
 │   ├── interface.py       # UI components (menus, timers, banners)
+│   ├── AI.py              # AI Logic (Minimax, Evaluation, Simulation)
+│   ├── stack.py           # Move history management
 │   └── bord.py            # Board class (currently unused)
 │
 ├── utils/
@@ -83,17 +85,7 @@ chessrush/
     ├── pieces_3/
     ├── pieces_4/
     ├── sounds/            # Sound effects
-    │   ├── game-start.mp3
-    │   ├── game-end.mp3
-    │   ├── move-self.mp3
-    │   ├── move-check.mp3
-    │   ├── capture.mp3
-    │   ├── castle.mp3
-    │   └── illegal.mp3
-    ├── ChessRush.png      # Game logo
-    ├── white-avatar.png   # Player avatars
-    ├── black-avatar.png
-    └── icon-*.png         # UI icons
+    └── icons/             # UI icons
 ```
 
 ## How to Play
@@ -107,6 +99,7 @@ chessrush/
 ### Controls
 - **Mouse Click**: Select and move pieces
 - **ESC**: Return to previous menu / Exit game
+- **C**: Cancel/Undo last move
 - **Visual Indicators**:
   - Yellow highlight: Selected piece
   - Small dots: Valid move destinations
@@ -131,6 +124,18 @@ chessrush/
 - **Stalemate**: No legal moves available but king not in check
 - **Time Out**: Player's clock reaches zero
 - **Insufficient Material**: Kings only, King+Bishop, King+Knight, or King+Bishop vs King+Bishop (same color)
+
+## How the AI works 
+The artificial intelligence in ChessRush is built from scratch using Python. It relies on the Minimax algorithm with Alpha-Beta pruning to make decisions.
+
+1. **Move Generation**: The AI generates all legal moves for the current position, including special moves like En Passant and Castling.
+2. **State Simulation**:  It simulates each possible move on a virtual board copy to calculate future game states without affecting the real game.
+3. **Evaluation function**:  The board state is scored based on several criteria:
+   - **Material**: Sum of piece values (e.g., Queen=90, Pawn=10)
+   - **Positioning**: Uses **Piece-Square Tables (PST)** to reward pieces for being on advantageous squares (e.g., Knights in the center, Rooks on open files).
+   - **Mobility**: Calculates the difference in available legal moves between the AI and the opponent.
+   - **King Safety**: Penalties for being in check or checkmate.
+4. **Decision-Making**: The AI chooses the move that maximizes its score while assuming the opponent will play the best possible counter-move (Minimax).
 
 ## PGN Output
 
@@ -161,12 +166,14 @@ Games are automatically saved in `game_save.txt` using standard PGN format:
 - `is_safe_move()`: Ensures moves don't leave king in check
 - `algebraic_notation()`: Converts moves to standard notation
 - `is_checkmate()` / `is_stalemate()`: Game end condition detection
+- `minimax()`: Recursive algorithm to determine the optimal move
+- `evaluate()`: Calculates the score of a board state based on material ,position and mobility.
 
 ## Future Enhancements
 
 - [x] AI opponent with difficulty levels
 - [ ] Move history viewer
-- [ ] Undo/redo functionality
+- [x] Undo/redo functionality
 - [ ] Custom piece promotion choice
 
 
