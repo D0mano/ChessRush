@@ -3,6 +3,7 @@ from classes.pieces import Pieces
 
 from classes.interface import *
 from classes.AI import*
+from classes.stack import *
 
 
 
@@ -12,11 +13,13 @@ class Game:
         self.is_playing = False
         self.in_menu = True
         self.in_mode_selection = False
+        self.in_ath_selection = False
+        self.in_opponent_selection = False
         self.screen = None
         self.bord = []
         self.bord_color = CLASSICAL_BORD
         self.path = "pieces"
-        self.bord_copy = []
+        self.state = {}
         self.time_is_stop = False
         self.is_increment = False
         self.increment_time = 0
@@ -29,6 +32,7 @@ class Game:
         self.checkmate = None
         self.stalemate = None
         self.last_move = None
+        self.list_move = Stack()
         self.white_roque = True
         self.black_roque = True
         self.game_start_sound = pygame.mixer.Sound(f"assets/sounds/game-start.mp3")
@@ -66,6 +70,8 @@ class Game:
         self.checkmate = False
         self.check = False
         self.stalemate = False
+        self.set_time(self.time)
+
 
     def update(self):
         """
@@ -160,6 +166,7 @@ class Game:
         self.time = time
 
     def set_increment_time(self,time):
+
         self.increment_time = time
 
     def decrement_time(self,color,dt):
@@ -186,7 +193,7 @@ class Game:
 
 
 
-    def star_game(self):
+    def start_game(self):
 
         self.screen.fill(BACKGROUND_COLOR)
         display_current_player(self)
@@ -197,7 +204,8 @@ class Game:
         self.update()
         coup = []
         list_coup = []
-        self.start_time()
+        if self.time is not None:
+            self.start_time()
         while self.is_playing:
 
             if self.end_game():
@@ -205,10 +213,10 @@ class Game:
 
 
             dt = clock.tick(30) / 1000
-
-            display_timer(self)
-            if not self.time_is_stop:
-                self.decrement_time(self.turn, dt)
+            if self.time is not None:
+                display_timer(self)
+                if not self.time_is_stop:
+                    self.decrement_time(self.turn, dt)
 
             if self.ai_enabled  and not self.end_game():
                 # On rafraîchit l'écran pour voir le dernier
@@ -263,9 +271,10 @@ class Game:
                     if event.key == pygame.K_ESCAPE:
                         self.is_playing = False
                         self.reinitialise_game()
-                        self.in_menu = True
                     if event.key == pygame.K_t:
                         print(is_endgame(self.copy()))
+                    if event.key == pygame.K_c:
+                        cancel_move(self)
 
 
 
@@ -284,10 +293,11 @@ class Game:
 
     def end_game(self):
         end = False
-        if self.white_time < 1:
-            end = True
-        elif self.black_time < 1:
-            end = True
+        if self.time is not None:
+            if self.white_time < 1:
+                end = True
+            elif self.black_time < 1:
+                end = True
         elif self.checkmate:
             end = True
         elif self.stalemate:

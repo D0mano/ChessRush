@@ -4,6 +4,28 @@ from pygame import K_ESCAPE, MOUSEBUTTONUP
 from utils.functions import *
 
 
+class Button:
+    def __init__(self, text, font, pos_center, padding=(20, 10), text_color=(254, 238, 202), bg_color=(33, 32, 31)):
+        self.text_surf = font.render(text, True, text_color)
+        self.rect = self.text_surf.get_rect(center=pos_center)
+        # Agrandir le rectangle pour le fond
+        self.bg_rect = self.rect.inflate(padding[0] * 2, padding[1] * 2)
+        self.bg_color = bg_color
+        self.text_color = text_color
+
+    def draw(self, screen):
+        #Draw the rounded rectangle
+        pygame.draw.rect(screen, self.bg_color, self.bg_rect, border_radius=20)
+        # Draw the text
+        screen.blit(self.text_surf, self.rect)
+
+    def is_clicked(self, event):
+        if event.type == pygame.MOUSEBUTTONUP:
+            if self.bg_rect.collidepoint(event.pos):
+                return True
+        return False
+
+
 def display_current_player(game):
     """
     Display the current player's turn on the game screen.
@@ -99,50 +121,33 @@ def display_timer(game):
         game.screen.blit(text_2, rect_2)
 
 
-def main_menu(game):
+def main_menu(game,screen):
     """
     Display the main menu with PLAY and QUIT buttons.
     Handles user input for menu navigation.
 
     Args:
         game: Game object to control menu state and game flow
+        screen: Screen object to control menu state and game flow
     """
-    pygame.init()
-    screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.NOFRAME)
+
     font = pygame.font.SysFont("impact", 60)
 
+
     # Create PLAY button
-    text_play = font.render("PLAY", True, (254, 238, 202))
-    text_play_rect = text_play.get_rect(center=(WINDOW_WIDTH / 2, WINDOW_HEIGHT * 2 / 3))
-    padding_x1 = 20
-    padding_y1 = 10
-    play_button_rect = pygame.Rect(
-        text_play_rect.left - padding_x1,
-        text_play_rect.top - padding_y1,
-        text_play_rect.width + 2 * padding_x1,
-        text_play_rect.height + 2 * padding_y1
-    )
+    plat_button = Button("PLAY",font,(WINDOW_WIDTH / 2, WINDOW_HEIGHT * 2 / 3))
 
     # Create QUIT button
-    text_quit = font.render("QUIT", True, (254, 238, 202))
-    text_quit_rect = text_quit.get_rect(center=(WINDOW_WIDTH / 2, WINDOW_HEIGHT * 2.5 / 3))
-
-    quit_button_rect = pygame.Rect(
-        text_quit_rect.left - padding_x1,
-        text_quit_rect.top - padding_y1,
-        text_quit_rect.width + 2 * padding_x1,
-        text_quit_rect.height + 2 * padding_y1
-    )
+    quit_button = Button("QUIT",font,(WINDOW_WIDTH / 2, WINDOW_HEIGHT * 2.5 / 3))
 
     # Initial screen setup
     screen.fill(BACKGROUND_COLOR)
     logo = pygame.image.load("assets/ChessRush.png")
     logo_rect = logo.get_rect(center=(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 3))
     screen.blit(logo, logo_rect)
-    pygame.draw.rect(screen, (33, 32, 31), play_button_rect, border_radius=20)
-    pygame.draw.rect(screen, (33, 32, 31), quit_button_rect, border_radius=20)
-    screen.blit(text_quit, text_quit_rect)
-    screen.blit(text_play, text_play_rect)
+
+    plat_button.draw(screen)
+    quit_button.draw(screen)
 
     # Main menu loop
     while game.in_menu:
@@ -151,11 +156,10 @@ def main_menu(game):
         logo = pygame.image.load("assets/ChessRush.png")
         logo_rect = logo.get_rect(center=(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 3))
         screen.blit(logo, logo_rect)
-        pygame.draw.rect(screen, (33, 32, 31), play_button_rect, border_radius=20)
-        pygame.draw.rect(screen, (33, 32, 31), quit_button_rect, border_radius=20)
-        screen.blit(text_quit, text_quit_rect)
-        screen.blit(text_play, text_play_rect)
+        plat_button.draw(screen)
+        quit_button.draw(screen)
         pygame.display.flip()
+
 
         # Handle events
         for event in pygame.event.get():
@@ -165,14 +169,67 @@ def main_menu(game):
                 if event.key == pygame.K_ESCAPE:
                     game.in_menu = False
                     game.running = False
-            if event.type == pygame.MOUSEBUTTONUP:
-                if play_button_rect.collidepoint(event.pos):
-                    game.in_menu = False
-                    game.in_mode_selection = True
-                    mode_selecting(game, screen)
-                elif quit_button_rect.collidepoint(event.pos):
-                    game.in_menu = False
-                    game.running = False
+
+            if plat_button.is_clicked(event):
+                game.in_menu = False
+                game.in_opponent_selection = True
+                return
+            elif quit_button.is_clicked(event):
+                game.in_menu = False
+                game.running = False
+
+
+def opponent_selecting(game, screen):
+    """
+    Display the opponent selection screen (PvP or PvAI).
+    """
+    font = pygame.font.SysFont("impact", 50)
+    title_font = pygame.font.SysFont("impact", 70)
+
+    # Titre
+    title = title_font.render("CHOOSE OPPONENT", True, (254, 238, 202))
+    title_rect = title.get_rect(center=(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 4))
+
+    # Boutons
+    btn_pvp = Button("PLAYER VS PLAYER", font, (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2))
+    btn_ai = Button("PLAYER VS AI", font, (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 + 100))
+
+    while game.in_opponent_selection:
+        screen.fill(BACKGROUND_COLOR)
+
+        # Dessin
+        screen.blit(title, title_rect)
+        btn_pvp.draw(screen)
+        btn_ai.draw(screen)
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                game.in_opponent_selection = False
+                game.running = False
+                return
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == K_ESCAPE:
+                    game.in_opponent_selection = False
+                    game.in_menu = True
+                    return
+
+            # Clic sur Player vs Player
+            if btn_pvp.is_clicked(event):
+                game.ai_enabled = False  # Désactiver l'IA
+                game.in_opponent_selection = False
+                game.in_mode_selection = True  # Étape suivante
+                return
+
+            # Clic sur Player vs AI
+            if btn_ai.is_clicked(event):
+                game.ai_enabled = True  # Activer l'IA
+                game.in_opponent_selection = False
+                game.in_ath_selection = True
+                return
+
 
 
 def mode_selecting(game, screen):
@@ -185,8 +242,7 @@ def mode_selecting(game, screen):
         screen: Pygame screen surface for rendering
     """
     # Initialization
-    pygame.init()
-    pygame.display.set_caption("Menu de jeu d'échecs")
+
     clock = pygame.time.Clock()
 
     # Color definitions
@@ -316,13 +372,9 @@ def mode_selecting(game, screen):
                 # Proceed to appearance selection if mode was selected
                 if mode_selected:
                     game.in_mode_selection = False
-                    ATH_selecting(game, screen)
-                    # Redraw columns after returning from appearance selection
-                    screen.fill(DARK_BG)
-                    for i, col in enumerate(columns):
-                        x = margin + i * (col_width + spacing)
-                        button_rect = draw_column(x, y, col_width, col_height, col["title"], col["modes"])
-                        all_button.extend(button_rect)
+                    game.in_ath_selection = True
+                    return
+
         pygame.display.flip()
         clock.tick(60)
 
@@ -336,14 +388,13 @@ def ATH_selecting(game, screen):
         game: Game object to store appearance preferences
         screen: Pygame screen surface for rendering
     """
-    pygame.init()
     font = pygame.font.SysFont("impact", 60)
 
     # Available piece sets and board colors
     paths = ["pieces", "pieces_2", "pieces_3", "pieces_4"]
     bord_colors = [CLASSICAL_BORD, GREEN_BORD, CIEL_BORD, GRAY_BORD,PINK_BORD   ]
 
-    running = True
+
     piece_index = 0
     color_index = 0
 
@@ -351,19 +402,11 @@ def ATH_selecting(game, screen):
     piece = pygame.image.load(f"assets/{paths[piece_index]}/white-pawn.png")
 
     # Create PLAY button
-    text_play = font.render("PLAY", True, (254, 238, 202))
-    text_play_rect = text_play.get_rect(center=(WINDOW_WIDTH / 2, WINDOW_HEIGHT * 4 / 5))
-    padding_x1 = 20
-    padding_y1 = 10
-    play_button_rect = pygame.Rect(
-        text_play_rect.left - padding_x1,
-        text_play_rect.top - padding_y1,
-        text_play_rect.width + 2 * padding_x1,
-        text_play_rect.height + 2 * padding_y1
-    )
+    play_button = Button("PLAY",font,(WINDOW_WIDTH / 2, WINDOW_HEIGHT * 4 / 5))
+
 
     # Appearance selection loop
-    while running:
+    while game.in_ath_selection:
         piece_rect = piece.get_rect(center=(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 3))
         screen.fill(BACKGROUND_COLOR)
 
@@ -375,17 +418,20 @@ def ATH_selecting(game, screen):
         screen.blit(piece, piece_rect)
 
         # Draw PLAY button
-        pygame.draw.rect(screen, (33, 32, 31), play_button_rect, border_radius=20)
-        screen.blit(text_play, text_play_rect)
+        play_button.draw(screen)
 
         # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                game.in_ath_selection = False
             if event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
-                    running = False
-                    game.in_mode_selection = True
+                    if game.ai_enabled:
+                        game.in_ath_selection = False
+                        game.in_opponent_selection = True
+                    else:
+                        game.in_ath_selection = False
+                        game.in_mode_selection = True
             if event.type == MOUSEBUTTONUP:
                 # Cycle through board colors when board is clicked
                 if bord_rect.collidepoint(event.pos):
@@ -407,10 +453,12 @@ def ATH_selecting(game, screen):
                         pygame.draw.rect(screen, BACKGROUND_COLOR, piece_rect)
                         game.set_piece(paths[piece_index])
 
-                # Start game when PLAY button is clicked
-                if play_button_rect.collidepoint(event.pos):
-                    running = False
-                    game.is_playing = True
+            # Start game when PLAY button is clicked
+            if play_button.is_clicked(event):
+                game.in_ath_selection = False
+                game.is_playing = True
+                return
+
 
         pygame.display.flip()
 
@@ -468,10 +516,10 @@ def End_banner(game, screen):
         draw_rounded_rect(screen, DARK_GRAY, title_rect, radius=10)
 
         # Determine game result and display appropriate message
-        if (game.turn == BLACK and game.checkmate) or game.black_time < 1:
+        if (game.turn == BLACK and game.checkmate) or (game.time is not None and game.black_time < 1):
             title_surf = font_title.render("White Won", True, white)
             score_text = font_score.render("1-0", True, black)
-        elif (game.turn == WHITE and game.checkmate) or game.white_time < 1:
+        elif (game.turn == WHITE and game.checkmate) or (game.time is not None and game.white_time < 1):
             title_surf = font_title.render("Black Won", True, white)
             score_text = font_score.render("0-1", True, black)
         else:

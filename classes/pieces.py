@@ -36,6 +36,26 @@ class Pieces:
             return True
 
         return False
+    def demotion(self):
+        self.__class__ = Pawn
+        self.type_piece = PAWN
+
+        if self.color == WHITE:
+            self.image = pygame.image.load(f"assets/{self.path}/white-pawn.png")
+            self.movement = DIRECTIONS_WHITE_PAWN
+            self.movement_1 = DIRECTIONS_WHITE_PAWN_1
+            self.movement_2 = DIRECTIONS_WHITE_PAWN_2
+        else:
+            self.image = pygame.image.load(f"assets/{self.path}/black-pawn.png")
+            self.movement = DIRECTIONS_BLACK_PAWN
+            self.movement_1 = DIRECTIONS_BLACK_PAWN_1
+            self.movement_2 = DIRECTIONS_BLACK_PAWN_2
+
+        self.image = pygame.transform.smoothscale(self.image, (SIZE_PIECES, SIZE_PIECES))
+        self.rect = self.image.get_rect(center=(chess_to_xy((self.x, self.y))))
+        self.movement_type = JUMPING
+        self.game.update()
+        return
 
     def _promote_to_queen(self):
         self.__class__ = Queen

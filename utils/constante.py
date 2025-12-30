@@ -130,6 +130,33 @@ PLATEAU_INITIAL = [
      (WHITE, KING), (WHITE, BISHOP), (WHITE, KNIGHT), (WHITE, ROOK)]
 ]
 
+PLATEAU_INITIAL_2 = [
+    # Ligne 8 (index 0) - Pièces noires
+[(WHITE, ROOK), (WHITE, KNIGHT), (WHITE, BISHOP), (WHITE, QUEEN),
+     (WHITE, KING), (WHITE, BISHOP), (WHITE, KNIGHT), (WHITE, ROOK)],
+
+    # Ligne 7 (index 1) - Pions blanc
+    [(WHITE, PAWN), (WHITE, PAWN), (WHITE, PAWN), (WHITE, PAWN),
+     (WHITE, PAWN), (WHITE, PAWN), (WHITE, PAWN), (WHITE, PAWN)],
+
+    # Lignes 6 à 3 (indices 2 à 5) - Cases vides
+    [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
+    [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
+    [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
+    [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
+
+    # Ligne 2 (index 6) - Pions noir
+
+    [(BLACK, PAWN), (BLACK, PAWN), (BLACK, PAWN), (BLACK, PAWN),
+     (BLACK, PAWN), (BLACK, PAWN), (BLACK, PAWN), (BLACK, PAWN)],
+
+
+    # Ligne 1 (index 7) - Pièces blanches
+
+    [(BLACK, ROOK), (BLACK, KNIGHT), (BLACK, BISHOP), (BLACK, QUEEN),
+     (BLACK, KING), (BLACK, BISHOP), (BLACK, KNIGHT), (BLACK, ROOK)]
+]
+
 PLATEAU_NULL = [
     # 8 (0)
     [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, (BLACK, KING)],

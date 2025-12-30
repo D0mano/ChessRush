@@ -3,9 +3,12 @@ import math
 
 from classes.AI import *
 from utils.constante import *
+from classes.stack import Stack
 
 # Global variable to track selected squares on the chessboard
 selected_case = [[False for _ in range(8)] for _ in range(8)]
+
+
 
 
 def chess_to_xy(pos):
@@ -421,10 +424,10 @@ def is_safe_move(game, original_x, original_y, des_x, des_y, color):
         bool: True if the move is safe, False otherwise
     """
     # Create a copy of the board and simulate the move
-    game.bord_copy = game.copy()['bord']
-    move_simu(game.bord_copy, original_x, original_y, des_x, des_y)
+    game.state = game.copy()
+    move_simu(game.state['bord'], original_x, original_y, des_x, des_y)
     # Check if the king would be in check after the move
-    return not is_check_simu(game.bord_copy, color)
+    return not is_check_simu(game.state['bord'], color)
 
 
 def is_select(game, event):
@@ -502,13 +505,13 @@ def move(game, original_x, original_y, des_x, des_y):
     capture_piece = None
     if game.bord[des_y][des_x] is not None:
         capture = True
-        capture_piece = game.bord[des_y][des_x].type_piece
+        capture_piece = game.bord[des_y][des_x]
     piece = game.bord[original_y][original_x]
 
     # Handle en passant
     if can_en_passant(game, original_x, original_y, des_x, des_y):
         capture = True
-        capture_piece = game.bord[original_y][des_x].type_piece
+        capture_piece = game.bord[original_y][des_x]
         notation = execute_en_passant(game, original_x, original_y, des_x, des_y)
         game.capture_sound.play()
         game.last_move = {
@@ -519,7 +522,8 @@ def move(game, original_x, original_y, des_x, des_y):
             'to_y': des_y,
             'en_passant': True,
             'castle': False,
-            'capture_piece': capture_piece
+            'capture_piece': capture_piece,
+            'promotion': False
 
         }
     # Handle castling
@@ -534,7 +538,8 @@ def move(game, original_x, original_y, des_x, des_y):
             'to_y': des_y,
             'en_passant': False,
             'castle': True,
-            'capture_piece': capture_piece}
+            'capture_piece': capture_piece,
+            'promotion': False}
 
     elif piece.type_piece == KING and (des_x, des_y) == piece.king_castle and piece.nb_move == 0:
         notation = execute_castle(game, piece.color, True)
@@ -547,7 +552,8 @@ def move(game, original_x, original_y, des_x, des_y):
             'to_y': des_y,
             'en_passant': False,
             'castle': True,
-            'capture_piece': capture_piece}
+            'capture_piece': capture_piece,
+            'promotion': False}
     else:
         # Execute normal move
         promotion = game.bord[original_y][original_x].promotion(des_x, des_y)
@@ -567,7 +573,8 @@ def move(game, original_x, original_y, des_x, des_y):
             'to_y': des_y,
             'en_passant': False,
             'castle': False,
-            'capture_piece': capture_piece
+            'capture_piece': capture_piece,
+            'promotion': promotion
         }
         if promotion:
             game.update()
@@ -578,7 +585,8 @@ def move(game, original_x, original_y, des_x, des_y):
     draw_bord(game.screen, game)
 
     # Update game state
-    game.increment(game.turn, game.increment_time)
+    if game.time is not None:
+        game.increment(game.turn, game.increment_time)
     game.switch_turn()
     game.check = is_check(game, game.turn)
     game.checkmate = game.is_checkmate(game.turn)
@@ -601,10 +609,58 @@ def move(game, original_x, original_y, des_x, des_y):
         game.move_self_sound.play()
 
     # Record the move
+    game.list_move.push(game.last_move)
 
     return notation
 
 
+def cancel_move(game):
+    last_move = game.list_move.pop()
+    if last_move is None:
+        return
+    piece = game.bord[last_move['to_y']][last_move['to_x']]
+    piece_eaten = last_move['capture_piece']
+    if last_move['en_passant']:
+        game.bord[last_move['from_y']][last_move['from_x']] = piece
+        game.bord[last_move['from_y']][last_move['to_x']] = piece_eaten
+        game.bord[last_move['to_y']][last_move['to_x']] = None
+    elif last_move['castle']:
+        if last_move['to_x'] == 6:
+            rook = game.bord[last_move['from_y']][5]
+            game.bord[last_move['from_y']][last_move['from_x']] = piece
+            game.bord[last_move['to_y']][last_move['to_x']] = None
+            game.bord[last_move['from_y']][5] = None
+            game.bord[last_move['from_y']][7] = rook
+
+        else:
+            rook = game.bord[last_move['from_y']][3]
+            game.bord[last_move['from_y']][last_move['from_x']] = piece
+            game.bord[last_move['to_y']][last_move['to_x']] = None
+            game.bord[last_move['from_y']][3] = None
+            game.bord[last_move['from_y']][0] = rook
+        rook.nb_move -= 1
+    elif last_move['promotion']:
+        piece.demotion()
+        if piece_eaten is not None:
+            game.bord[last_move['from_y']][last_move['from_x']] = piece
+            game.bord[last_move['to_y']][last_move['to_x']] = piece_eaten
+        else:
+            game.bord[last_move['from_y']][last_move['from_x']] = piece
+            game.bord[last_move['to_y']][last_move['to_x']] = None
+
+    else:
+        if piece_eaten is not None:
+            game.bord[last_move['from_y']][last_move['from_x']] = piece
+            game.bord[last_move['to_y']][last_move['to_x']] = piece_eaten
+        else:
+            game.bord[last_move['from_y']][last_move['from_x']] = piece
+            game.bord[last_move['to_y']][last_move['to_x']] = None
+
+    piece.nb_move -= 1
+    game.last_move = game.list_move.peek()
+    game.switch_turn()
+    draw_bord(game.screen, game)
+    game.update()
 
 
 
