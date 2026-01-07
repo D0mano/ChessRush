@@ -30,7 +30,7 @@ while game.running:
             screen = pygame.display.set_mode((GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT))
         game.set_screen(screen)
             
-        game.set_bord(PLATEAU_INITIAL)
+        game.set_board(PLATEAU_INITIAL)
         game.start_game()
         # Après le jeu, on affiche la bannière
         End_banner(game, screen)

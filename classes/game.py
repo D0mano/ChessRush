@@ -16,8 +16,8 @@ class Game:
         self.in_ath_selection = False
         self.in_opponent_selection = False
         self.screen = None
-        self.bord = []
-        self.bord_color = CLASSICAL_BORD
+        self.board = []
+        self.board_color = CLASSICAL_BORD
         self.path = "pieces"
         self.state = {}
         self.time_is_stop = False
@@ -30,7 +30,8 @@ class Game:
         self.nb_turn = 1
         self.check = None
         self.checkmate = None
-        self.stalemate = None
+        self.draw = None
+        self.outcome = None
         self.last_move = None
         self.list_move = Stack()
         self.white_roque = True
@@ -44,47 +45,51 @@ class Game:
         self.castle_sound = pygame.mixer.Sound("assets/sounds/castle.mp3")
         self.ai = AI(self)
         self.ai_enabled = True
+        self.reverse = False
 
 
 
     def set_screen(self,screen):
         self.screen = screen
 
-    def set_bord(self,bord=PLATEAU_INITIAL):
-        for y in range(len(bord)):
+    def set_board(self,board=PLATEAU_INITIAL):
+        for y in range(len(board)):
             row = []
-            for x in range(len(bord[y])):
-                pieces = bord[y][x]
+            for x in range(len(board[y])):
+                pieces = board[y][x]
                 if pieces != EMPTY:
                     obj = Pieces(self,pieces[0], x, y, pieces[1])
                     row.append(obj)
                 else: row.append(None)
-            self.bord.append(row)
+            self.board.append(row)
 
     def reinitialise_game(self):
-        self.bord = []
+        self.board = []
         self.turn = WHITE
         self.nb_turn = 1
         self.white_roque = True
         self.black_roque = True
         self.checkmate = False
         self.check = False
-        self.stalemate = False
+        self.draw = False
         self.set_time(self.time)
 
 
     def update(self):
         """
-        Update the position of the pieces in the bord to their coordinate
+        Update the position of the pieces in the board to their coordinate
         :return:
         """
         for y in range(8):
             for x in range(8):
-                if self.bord[y][x] is not None:
-                    self.bord[y][x].rect = self.bord[y][x].image.get_rect(center=(chess_to_xy((x,y))))
-                    self.bord[y][x].x = x
-                    self.bord[y][x].y = y
-                    self.screen.blit(self.bord[y][x].image, self.bord[y][x].rect)
+                if self.board[y][x] is not None:
+                    if self.reverse:
+                        self.board[y][x].rect = self.board[y][x].image.get_rect(center=(chess_to_xy((7-x, 7-y))))
+                    else:
+                        self.board[y][x].rect = self.board[y][x].image.get_rect(center=(chess_to_xy((x,y))))
+                    self.board[y][x].x = x
+                    self.board[y][x].y = y
+                    self.screen.blit(self.board[y][x].image, self.board[y][x].rect)
 
 
     def switch_turn(self):
@@ -95,12 +100,12 @@ class Game:
         return self.turn
 
     def copy(self):
-        bord = self.bord
+        board = self.board
         grid = []
         for y in range(8):
             row = []
             for x in range(8):
-                piece = bord[y][x]
+                piece = board[y][x]
                 if piece is None:
                     row.append(None)
                 else:
@@ -115,10 +120,11 @@ class Game:
                               self.last_move['to_y'])
         else :
             last_move_info = None
-        state = {'bord':grid,
+        state = {'board':grid,
                  'last_move_info':last_move_info,
                  'turn':self.turn,
-                 'nb_turn':self.nb_turn
+                 'nb_turn':self.nb_turn,
+                 'move_history':list(self.list_move.items),
                  }
         return state
 
@@ -127,37 +133,69 @@ class Game:
             return False
         for y in range(8):
             for x in range(8):
-                piece = self.bord[y][x]
+                piece = self.board[y][x]
                 if piece is not None and piece.color == color:
                     if piece.count_possible_move() != 0:
                         return False
         return True
 
-    def is_stalemate(self, color):
+    def is_draw(self, color):
         if self.is_pat(color):
-            return True
+            return True,STALEMATE
+        elif self.insufficient_material():
+            return True,INSUFFICIENT
+        elif self.threefold_repetition():
+            return True,THREEFOLD
+        return False,GAME_IN_PROGRESS
 
-        remaining = self.pieces_remaining()
-        if sorted(remaining) == sorted([KING,KING]):
-            return True
-        if sorted(remaining) == sorted([KING,KING,BISHOP]):
-            return True
-        if sorted(remaining) == sorted([KING,KING,KNIGHT]):
-            return True
-        if sorted(remaining) == sorted([KING,BISHOP,KING,BISHOP]):
-            return True
-        return False
+    def what_outcome(self):
+        self.checkmate = self.is_checkmate(self.turn)
+        self.draw, self.outcome = self.is_draw(self.turn)
+
+        if self.checkmate:
+            if self.turn == WHITE:
+                self.outcome = WHITE_CHECKMATE
+            else:
+                self.outcome = BLACK_CHECKMATE
+
+
+
+
+
+
 
     def is_pat(self,color):
         if  self.check:
             return False
         for y in range(8):
             for x in range(8):
-                piece = self.bord[y][x]
+                piece = self.board[y][x]
                 if piece is not None and piece.color == color:
                     if piece.count_possible_move() != 0:
                         return False
         return True
+
+    def insufficient_material(self):
+        remaining = self.pieces_remaining()
+        if sorted(remaining) == sorted([KING, KING]):
+            return True
+        if sorted(remaining) == sorted([KING, KING, BISHOP]):
+            return True
+        if sorted(remaining) == sorted([KING, KING, KNIGHT]):
+            return True
+        if sorted(remaining) == sorted([KING, KING, BISHOP, BISHOP]):
+            return True
+        return False
+
+    def threefold_repetition(self):
+        last_index = len(self.list_move.items)-1
+        if last_index >= 9:
+            if (self.last_move == self.list_move.items[last_index - 4]) and (self.list_move.items[last_index - 1] == self.list_move.items[last_index - 5]):
+                if (self.last_move == self.list_move.items[last_index - 8]) and (self.list_move.items[last_index - 1] == self.list_move.items[last_index - 9]):
+                    return True
+
+        return False
+
 
 
     def set_time(self,time):
@@ -197,7 +235,7 @@ class Game:
 
         self.screen.fill(BACKGROUND_COLOR)
         display_current_player(self)
-        draw_bord(self.screen,self)
+        draw_board(self.screen,self)
         clock = pygame.time.Clock()
         selected_square = None
         self.game_start_sound.play()
@@ -221,7 +259,7 @@ class Game:
             if self.ai_enabled  and not self.end_game():
                 # On rafraîchit l'écran pour voir le dernier
                 pygame.display.flip()
-                if self.turn == BLACK:
+                if self.turn == WHITE:
                     print("The Black AI is thinking ...")
 
                     coup_ia = self.ai.get_best_move(depth=2)
@@ -255,7 +293,10 @@ class Game:
                         start_x, start_y = selected_square[0], selected_square[1]
                         if xy_to_chess(event.pos) is not None:
                             end_x, end_y = xy_to_chess(event.pos)
-                            movement = move(self, start_x, start_y, end_x, end_y)
+                            if self.reverse:
+                                movement = move(self, start_x, start_y, 7-end_x, 7-end_y)
+                            else:
+                                movement = move(self, start_x, start_y, end_x, end_y)
 
                             if movement is not None:
                                 if self.turn == BLACK:
@@ -277,6 +318,10 @@ class Game:
                         else:
                             coup = []
                         cancel_move(self)
+                    if event.key == pygame.K_r:
+                        self.reverse = not self.reverse
+                        draw_board(self.screen, self)
+                        self.update()
 
 
 
@@ -290,8 +335,8 @@ class Game:
         self.stop_time()
 
 
-    def set_bord_color(self,color):
-        self.bord_color = color
+    def set_board_color(self,color):
+        self.board_color = color
 
     def set_piece(self,path):
         self.path = path
@@ -303,9 +348,9 @@ class Game:
                 end = True
             elif self.black_time < 1:
                 end = True
-        elif self.checkmate:
+        if self.checkmate:
             end = True
-        elif self.stalemate:
+        if self.draw:
             end = True
         return end
 
@@ -313,7 +358,7 @@ class Game:
         pieces = []
         for y in range(8):
             for x in range(8):
-                piece = self.bord[y][x]
+                piece = self.board[y][x]
                 if piece is not None:
                     pieces.append(piece.type_piece)
         return pieces

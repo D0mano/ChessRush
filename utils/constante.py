@@ -202,7 +202,6 @@ PLATEAU_AMBIGUITE = [
     [EMPTY, EMPTY, (WHITE, KNIGHT), EMPTY, (WHITE, KING), EMPTY, (WHITE, KNIGHT), EMPTY]
 ]
 
-
 PLATEAU_PROMOTION = [
     # Ligne 8 (index 0)
     [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
@@ -229,12 +228,35 @@ PLATEAU_PROMOTION = [
     [(BLACK, KING), EMPTY, EMPTY, EMPTY, (WHITE, KING), EMPTY, EMPTY, EMPTY]
 ]
 
+PLATEAU_ROOK = [
+    # 8 (0)
+    [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, (BLACK, KING)],
+    # 7 (1)
+    [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
+    # 6 (2)
+    [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
+    # 5 (3)
+    [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
+    # 4 (4)
+    [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
+    # 3 (5)
+    [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,(WHITE, ROOK), EMPTY],
+    # 2 (6)
+    [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
+    # 1 (7)
+    [(WHITE, KING), EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY]
+]
+
+
 
 
 # === COORDONNÉES D'ÉCHIQUIER ===
 # Conversion entre indices de tableau et notation échiquéenne
 COLUMNS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 ROWS = ['8', '7', '6', '5', '4', '3', '2', '1']
+
+COLUMNS_INV = COLUMNS[::-1]
+ROWS_INV = ROWS[::-1]
 
 # === CONFIGURATIONS DE JEU ===
 FPS = 60  # Images par seconde
@@ -250,10 +272,14 @@ QUIT_KEY = 'q'
 
 # === ÉTATS DU JEU ===
 GAME_IN_PROGRESS = 0
-WHITE_CHECKMATE = 1
-BLACK_CHECKMATE = 2
-PAT = 3
-PARTIE_NULLE = 4
+CHECK = 1
+WHITE_CHECKMATE = 2
+BLACK_CHECKMATE = 3
+DRAW = 4
+STALEMATE = 5
+INSUFFICIENT = 6
+THREEFOLD = 7
+
 
 # === DIRECTIONS DE MOUVEMENT ===
 # Pour calculer les mouvements des pièces
@@ -353,7 +379,6 @@ MAT = [
     [(WHITE, ROOK), EMPTY, EMPTY, (WHITE, QUEEN), EMPTY, (WHITE, ROOK), (WHITE, KING), EMPTY]
 ]
 
-# Puzzle 1 : Mat du Couloir
 PLATEAU_PUZZLE_1 = [
     # Ligne 8 (index 0)
     [(BLACK, ROOK), (BLACK, KNIGHT), EMPTY, EMPTY,

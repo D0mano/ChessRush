@@ -100,12 +100,12 @@ def is_collinear(v1, v2):
     return v1[0] * v2[1] - v1[1] * v2[0] == 0
 
 
-def is_legal_move_simu(bord, o_x, o_y, d_x, d_y):
+def is_legal_move_simu(board, o_x, o_y, d_x, d_y):
     """
     Check if a move is legal in a simulated board state (used for move validation).
 
     Args:
-        bord (list): 2D list representing the board state
+        board (list): 2D list representing the board state
         o_x (int): Origin x coordinate
         o_y (int): Origin y coordinate
         d_x (int): Destination x coordinate
@@ -114,8 +114,8 @@ def is_legal_move_simu(bord, o_x, o_y, d_x, d_y):
     Returns:
         bool: True if the move is legal, False otherwise
     """
-    case_sta = bord[o_y][o_x]
-    case_end = bord[d_y][d_x]
+    case_sta = board[o_y][o_x]
+    case_end = board[d_y][d_x]
     distance_x = d_x - o_x
     distance_y = d_y - o_y
     valid_direction = False
@@ -123,9 +123,9 @@ def is_legal_move_simu(bord, o_x, o_y, d_x, d_y):
     if case_sta[PIECE_TYPE] == KING:
         if (distance_x,distance_y) not in KING_DIRECTION:
             if (case_sta[PIECE_COLOR] == WHITE and (d_x, d_y) == QUEEN_SIDE_CASTLE[1]) or (case_sta[PIECE_COLOR] == BLACK and (d_x, d_y) == QUEEN_SIDE_CASTLE[0])  and case_sta[PIECE_NB_MOVEMENT] == 0:
-                    return can_castle_queen_side_simu(bord, case_sta[PIECE_COLOR])
+                    return can_castle_queen_side_simu(board, case_sta[PIECE_COLOR])
             elif (case_sta[PIECE_COLOR] == WHITE and (d_x, d_y) == KING_SIDE_CASTLE[1]) or (case_sta[PIECE_COLOR] == BLACK and (d_x, d_y) == KING_SIDE_CASTLE[0]) and case_sta[PIECE_NB_MOVEMENT] == 0:
-                    return can_castle_king_side_simu(bord, case_sta[PIECE_COLOR])
+                    return can_castle_king_side_simu(board, case_sta[PIECE_COLOR])
 
     # Handle non-pawn pieces
     if case_sta[0] != PAWN:
@@ -142,7 +142,7 @@ def is_legal_move_simu(bord, o_x, o_y, d_x, d_y):
                 step_y = (distance_y // abs(distance_y)) if distance_y != 0 else 0
                 x, y = o_x + step_x, o_y + step_y
                 while (x, y) != (d_x, d_y):
-                    if bord[y][x] is not None:
+                    if board[y][x] is not None:
                         return False
                     x += step_x
                     y += step_y
@@ -161,15 +161,15 @@ def is_legal_move_simu(bord, o_x, o_y, d_x, d_y):
             return True
     else:
         # Handle pawn moves
-        return is_legal_move_pawn_simu(bord, o_x, o_y, d_x, d_y)
+        return is_legal_move_pawn_simu(board, o_x, o_y, d_x, d_y)
 
 
-def is_legal_move_pawn_simu(bord, o_x, o_y, d_x, d_y):
+def is_legal_move_pawn_simu(board, o_x, o_y, d_x, d_y):
     """
     Check if a pawn move is legal in a simulated board state.
 
     Args:
-        bord (list): 2D list representing the board state
+        board (list): 2D list representing the board state
         o_x (int): Origin x coordinate
         o_y (int): Origin y coordinate
         d_x (int): Destination x coordinate
@@ -178,8 +178,8 @@ def is_legal_move_pawn_simu(bord, o_x, o_y, d_x, d_y):
     Returns:
         bool: True if the pawn move is legal, False otherwise
     """
-    original = bord[o_y][o_x]
-    destination = bord[d_y][d_x]
+    original = board[o_y][o_x]
+    destination = board[d_y][d_x]
     color = original[1]
 
     # Calculate movement vector
@@ -210,7 +210,7 @@ def is_legal_move_pawn_simu(bord, o_x, o_y, d_x, d_y):
         step_y = (distance_y // abs(distance_y)) if distance_y != 0 else 0
         x, y = o_x + step_x, o_y + step_y
         while (x, y) != (d_x, d_y):
-            if bord[y][x] is not None:
+            if board[y][x] is not None:
                 return False
             x += step_x
             y += step_y
@@ -229,25 +229,35 @@ def is_safe_move_simu(board, original_x, original_y, des_x, des_y, color):
     return not is_check_simu(temp_board, color)
 
 
-def move_simu(bord,o_x,o_y,d_x,d_y):
+def move_simu(board,o_x,o_y,d_x,d_y):
 
-    piece = bord[o_y][o_x]
-    bord[d_y][d_x] = piece
-    bord[o_y][o_x] = None
+    piece = board[o_y][o_x]
+    board[d_y][d_x] = piece
+    board[o_y][o_x] = None
 
 
-def is_check_simu(bord, color):
+def pieces_remaining_simu(board):
+    pieces = []
+    for y in range(8):
+        for x in range(8):
+            piece = board[y][x]
+            if piece is not None:
+                pieces.append(piece[PIECE_COLOR])
+    return pieces
+
+
+def is_check_simu(board, color):
     """
     Check if the king is in check in a simulated board state.
 
     Args:
-        bord (list): 2D list representing the board state
-        color (int): Color of the king to check
+        board (list): 2D list representing the board state
+        color (int): Color of the king we are checking
 
     Returns:
         bool: True if the king is in check, False otherwise
     """
-    pos = king_pos_simu(bord, color)
+    pos = king_pos_simu(board, color)
     if pos is None:
         return False
 
@@ -255,19 +265,68 @@ def is_check_simu(bord, color):
     adversary_color = -color
     for y in range(8):
         for x in range(8):
-            piece = bord[y][x]
+            piece = board[y][x]
             if piece is not None and piece[1] == adversary_color:
-                if is_legal_move_simu(bord, x, y, pos[0], pos[1]):
+                if is_legal_move_simu(board, x, y, pos[0], pos[1]):
                     return True
     return False
 
 
-def king_pos_simu(bord, color):
+def is_stalemate_simu(state,is_check,color):
+    if is_check:
+        return False
+    if not generate_legal_moves(state['board'], color):
+        return True
+    return False
+
+
+def insufficient_material_simu(state):
+    remaining = pieces_remaining_simu(state['board'])
+    if sorted(remaining) == sorted([KING, KING]):
+        return True
+    if sorted(remaining) == sorted([KING, KING, BISHOP]):
+        return True
+    if sorted(remaining) == sorted([KING, KING, KNIGHT]):
+        return True
+    if sorted(remaining) == sorted([KING, KING, BISHOP, BISHOP]):
+        return True
+    return False
+
+
+def threefold_repetition_simu(state):
+    last_index = len(state['move_history'])-1
+    if last_index >= 9:
+        if (state['last_move_info'] == state['move_history'][last_index - 4]) and (state['move_history'][last_index - 1] == state['move_history'][last_index - 5]):
+            if (state['last_move_info'] == state['move_history'][last_index - 8]) and (state['move_history'][last_index - 1] == state['move_history'][last_index - 9]):
+                return True
+
+    return False
+
+
+def is_draw_simu(state,color,is_check=False):
+    if is_stalemate_simu(state,is_check,color):
+        return True
+    elif insufficient_material_simu(state):
+        return True
+    elif threefold_repetition_simu(state):
+        return True
+    return False
+
+
+def outcome_simu(state,color):
+    if is_check_simu(state['board'],color):
+        return CHECK
+    elif is_draw_simu(state,color):
+        return DRAW
+    return None
+
+
+def king_pos_simu(board, color):
     """
     Find the position of the king in a simulated board state.
 
     Args:
-        bord (list): 2D list representing the simulated board state
+        board (list): 2D list representing the simulated board state
         color (int): Color of the king to find
 
     Returns:
@@ -275,14 +334,14 @@ def king_pos_simu(bord, color):
     """
     for y in range(8):
         for x in range(8):
-            piece = bord[y][x]
+            piece = board[y][x]
             if piece is not None:
                 if piece[0] == KING and piece[1] == color:
                     return x, y
 
 
 def can_en_passant_simu(state, orig_x, orig_y, des_x, des_y):
-    board = state['bord']
+    board = state['board']
     pawn = board[orig_y][orig_x]
     if pawn is None or pawn[PIECE_TYPE] != PAWN:
         return False
@@ -408,7 +467,7 @@ def can_castle_queen_side_simu(board, color):
 
 
 def execute_en_passant_simu(state, orig_x, orig_y, des_x, des_y):
-    board = state['bord']
+    board = state['board']
     pawn = board[orig_y][orig_x]
     new_pawn = (pawn[PIECE_TYPE], pawn[PIECE_COLOR], pawn[PIECE_MOVEMENT], pawn[PIECE_NB_MOVEMENT] + 1)
     board[des_y][des_x] = new_pawn
@@ -417,7 +476,7 @@ def execute_en_passant_simu(state, orig_x, orig_y, des_x, des_y):
 
 
 def execute_castle_simu(state, color, king_side=True):
-    board = state['bord']
+    board = state['board']
     king_row = 7 if color == WHITE else 0
     if king_side:
         king_new_x, rook_old_x, rook_new_x = 6, 7, 5
@@ -445,16 +504,27 @@ def generate_legal_moves(board: list, color: int) -> list:
                     for d_x in range(len(board[o_y])):
                         if is_legal_move_simu(board, o_x, o_y, d_x, d_y) and \
                                 is_safe_move_simu(board, o_x, o_y, d_x, d_y, color):
-                            legal_moves.append([o_x, o_y, d_x, d_y])
+                            legal_moves.append((o_x, o_y, d_x, d_y))
     return legal_moves
 
 
+def score_move(board:list , move : tuple ) -> int :
+    target = board[move[2]][move[3]]
+    if target is None:
+        return 0
+    else:
+        return PIECE_VALUE[target[PIECE_TYPE]]
+
+
+
 def move_simu_ai(state: dict, o_x: int, o_y: int, d_x: int, d_y: int):
-    board = state['bord']
+    board = state['board']
     if can_en_passant_simu(state, o_x, o_y, d_x, d_y):
         execute_en_passant_simu(state, o_x, o_y, d_x, d_y)
         state['last_move_info'] = (PAWN, o_x, o_y, d_x, d_y)
         state['turn'] = -state['turn']
+        state['move_history'].append(state['last_move_info'])
+
         return
 
     piece = board[o_y][o_x]
@@ -465,11 +535,13 @@ def move_simu_ai(state: dict, o_x: int, o_y: int, d_x: int, d_y: int):
         execute_castle_simu(state, piece[PIECE_COLOR], False)
         state['last_move_info'] = (KING, o_x, o_y, d_x, d_y)
         state['turn'] = -state['turn']
+        state['move_history'].append(state['last_move_info'])
         return
     elif piece[PIECE_TYPE] == KING and (d_x, d_y) == king_castle and piece[PIECE_NB_MOVEMENT] == 0:
         execute_castle_simu(state, piece[PIECE_COLOR], True)
         state['last_move_info'] = (KING, o_x, o_y, d_x, d_y)
         state['turn'] = -state['turn']
+        state['move_history'].append(state['last_move_info'])
         return
 
 
@@ -484,6 +556,7 @@ def move_simu_ai(state: dict, o_x: int, o_y: int, d_x: int, d_y: int):
     board[d_y][d_x] = new_piece
     state['last_move_info'] = (new_piece[PIECE_TYPE], o_x, o_y, d_x, d_y)
     state['turn'] = -state['turn']
+    state['move_history'].append(state['last_move_info'])
 
 
 def material_eval(state):
@@ -492,7 +565,7 @@ def material_eval(state):
     Returns: Material Score
     Positive = White Advantage, Negative = Black Advantage
     """
-    board = state['bord']
+    board = state['board']
     score_mat = 0
     for y in range(8):
         for x in range(8):
@@ -507,7 +580,7 @@ def material_eval(state):
 
 
 def total_material(state):
-    board = state['bord']
+    board = state['board']
     total_mat = 0
     for y in range(8):
         for x in range(8):
@@ -524,12 +597,12 @@ def is_endgame(state):
 def mobility_eval(board):
     white_moves = len(generate_legal_moves(board, WHITE))
     black_moves = len(generate_legal_moves(board, BLACK))
-    return (white_moves - black_moves) * 3
+    return (white_moves - black_moves) * 5
 
 
 def get_position_value(piece,x,y, is_endgame=False):
     """
-    Obtient la valeur positionnelle d'une pièce
+    Obtains the positional value of a piece
     """
     piece_type = piece[PIECE_TYPE]
     color = piece[PIECE_COLOR]
@@ -559,7 +632,7 @@ def get_position_value(piece,x,y, is_endgame=False):
 
 
 def positional_eval(state,is_endgame=False):
-    board = state['bord']
+    board = state['board']
     pos_eval = 0
     for y in range(8):
         for x in range(8):
@@ -580,25 +653,31 @@ class AI:
     def evaluate(self, state):
         """
         Evaluates the board.
-        Returns: Material Score + Positional Score
+        Returns: Material Score + Positional Score + Mobility score
         Positive = White Advantage, Negative = Black Advantage
         """
-        board = state['bord']
+        board = state['board']
         value = 0
 
         material_score = material_eval(state)
 
-        mobility_score = mobility_eval(board)
+       # mobility_score = mobility_eval(board)
 
         positional_score = positional_eval(state,is_endgame(state))
 
-        value += material_score + mobility_score + positional_score
+       # value += material_score + mobility_score + positional_score
+        value += material_score +  positional_score
+
+        outcome_white = outcome_simu(state,WHITE)
+        outcome_black = outcome_simu(state,BLACK)
+        if outcome_white == CHECK:
+            value-= 100
+        elif outcome_black == CHECK:
+            value+= 100
+        elif outcome_black or outcome_white == DRAW:
+            value = 0
 
 
-        if is_check_simu(board,WHITE):
-            value -= 50
-        if is_check_simu(board,BLACK):
-            value += 50
 
         #value += random.randint(-5, 5)
 
@@ -608,10 +687,11 @@ class AI:
 
     def minimax(self, state, depth, alpha, beta, maximizing_player):
         current_color = state['turn']
-        possible_moves = generate_legal_moves(state['bord'], current_color)
+        possible_moves = generate_legal_moves(state['board'], current_color)
+        possible_moves.sort(key=lambda m:score_move(state['board'],m), reverse=True)
 
         if not possible_moves:
-            if is_check_simu(state['bord'], current_color):
+            if is_check_simu(state['board'], current_color):
                 return (-1000000 if maximizing_player else 1000000), None
             else:
                 return 0, None
@@ -627,11 +707,12 @@ class AI:
             max_eval = -float('inf')
             for move in possible_moves:
                 ox, oy, dx, dy = move
-                new_board = [row[:] for row in state['bord']]
+                new_board = [row[:] for row in state['board']]
                 new_state = {
-                    'bord': new_board,
+                    'board': new_board,
                     'turn': state['turn'],
-                    'last_move_info': state['last_move_info']
+                    'last_move_info': state['last_move_info'],
+                    'move_history' : state['move_history']
                 }
                 move_simu_ai(new_state, ox, oy, dx, dy)
                 eval, _ = self.minimax(new_state, depth - 1, alpha, beta, False)
@@ -646,11 +727,12 @@ class AI:
             min_eval = float('inf')
             for move in possible_moves:
                 ox, oy, dx, dy = move
-                new_board = [row[:] for row in state['bord']]
+                new_board = [row[:] for row in state['board']]
                 new_state = {
-                    'bord': new_board,
+                    'board': new_board,
                     'turn': state['turn'],
-                    'last_move_info': state['last_move_info']
+                    'last_move_info': state['last_move_info'],
+                    'move_history': state['move_history']
                 }
                 move_simu_ai(new_state, ox, oy, dx, dy)
                 eval, _ = self.minimax(new_state, depth - 1, alpha, beta, True)

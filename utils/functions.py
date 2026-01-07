@@ -46,8 +46,8 @@ def xy_to_chess(pos):
     return
 
 
-def draw_bord(screen, game, miniature=False, offset_x=OFFSET_PLATEAU_X, offset_y=OFFSET_PLATEAU_Y,
-              bord_width=BORD_WIDTH, bord_height=BORD_HEIGHT, case_size=CASE_SIZE):
+def draw_board(screen, game, miniature=False, offset_x=OFFSET_PLATEAU_X, offset_y=OFFSET_PLATEAU_Y,
+              board_width=BORD_WIDTH, board_height=BORD_HEIGHT, case_size=CASE_SIZE):
     """
     Draw the chess board with alternating colors and coordinate labels.
 
@@ -57,22 +57,22 @@ def draw_bord(screen, game, miniature=False, offset_x=OFFSET_PLATEAU_X, offset_y
         miniature (bool): Whether to draw a miniature version without labels
         offset_x (int): X offset for board position
         offset_y (int): Y offset for board position
-        bord_width (int): Width of the board
-        bord_height (int): Height of the board
+        board_width (int): Width of the board
+        board_height (int): Height of the board
         case_size (int): Size of each square
 
     Returns:
         pygame.Rect: Rectangle representing the board area
     """
-    color = game.bord_color
+    color = game.board_color
 
     # Draw border around the board (only for full-size board)
     if not miniature:
         pygame.draw.rect(screen, TEXT_COLOR,
-                         (offset_x - 25, offset_y - 25, bord_width + 50, bord_height + 50))
+                         (offset_x - 25, offset_y - 25, board_width + 50, board_height + 50))
 
     # Draw the base board color
-    pygame.draw.rect(screen, color[0], (offset_x, offset_y, bord_width, bord_height))
+    pygame.draw.rect(screen, color[0], (offset_x, offset_y, board_width, board_height))
 
     # Draw alternating colored squares
     for row in range(8):
@@ -86,17 +86,24 @@ def draw_bord(screen, game, miniature=False, offset_x=OFFSET_PLATEAU_X, offset_y
     if not miniature:
         for i in range(8):
             # Draw row numbers (1-8)
-            text_number = font.render(ROWS[i], True, (150, 150, 150))
+            if game.reverse:
+                text_number = font.render(ROWS_INV[i], True, (150, 150, 150))
+            else:
+                text_number = font.render(ROWS[i], True, (150, 150, 150))
+
             rect_number = text_number.get_rect(center=(offset_x - 15, (offset_y + case_size // 2) + (i * case_size)))
             screen.blit(text_number, rect_number)
 
             # Draw column letters (a-h)
-            text_letter = font.render(COLUMNS[i], True, (150, 150, 150))
+            if game.reverse:
+                text_letter = font.render(COLUMNS_INV[i], True, (150, 150, 150))
+            else:
+                text_letter = font.render(COLUMNS[i], True, (150, 150, 150))
             rect_letter = text_letter.get_rect(center=((offset_x + case_size // 2) + (i * case_size),
                                                        (offset_y + 8 * case_size) + 10))
             screen.blit(text_letter, rect_letter)
 
-    return pygame.Rect(offset_x, offset_y, bord_width, bord_height)
+    return pygame.Rect(offset_x, offset_y, board_width, board_height)
 
 
 def is_collinear(v1, v2):
@@ -129,8 +136,8 @@ def is_legal_move(game, original_x, original_y, des_x, des_y, ignore_turn=False)
     Returns:
         bool: True if the move is legal, False otherwise
     """
-    original = game.bord[original_y][original_x]
-    destination = game.bord[des_y][des_x]
+    original = game.board[original_y][original_x]
+    destination = game.board[des_y][des_x]
 
     # Calculate movement vector
     d_x = des_x - original_x
@@ -166,7 +173,7 @@ def is_legal_move(game, original_x, original_y, des_x, des_y, ignore_turn=False)
                 step_y = (d_y // abs(d_y)) if d_y != 0 else 0
                 x, y = original_x + step_x, original_y + step_y
                 while (x, y) != (des_x, des_y):
-                    if game.bord[y][x] is not None:
+                    if game.board[y][x] is not None:
                         return False
                     x += step_x
                     y += step_y
@@ -200,15 +207,18 @@ def show_possible_move(game, pos):
     """
     orig_x = pos[0]
     orig_y = pos[1]
-    piece = game.bord[orig_y][orig_x]
+    piece = game.board[orig_y][orig_x]
 
     # Check all squares on the board
     for y in range(8):
         for x in range(8):
             # If move is legal and safe (doesn't leave king in check)
             if is_legal_move(game, orig_x, orig_y, x, y) and is_safe_move(game, orig_x, orig_y, x, y, game.turn):
-                piece_2 = game.bord[y][x]
-                pos_2 = chess_to_xy((x, y))
+                piece_2 = game.board[y][x]
+                if game.reverse:
+                    pos_2 = chess_to_xy((7-x,7-y))
+                else:
+                    pos_2 = chess_to_xy((x, y))
                 top_left_x = pos_2[0] - CASE_SIZE // 2
                 top_left_y = pos_2[1] - CASE_SIZE // 2
                 circle_surf = pygame.Surface((CASE_SIZE, CASE_SIZE), pygame.SRCALPHA)
@@ -238,8 +248,8 @@ def is_legal_move_pawn(game, orig_x, orig_y, des_x, des_y):
     Returns:
         bool: True if the pawn move is legal, False otherwise
     """
-    original = game.bord[orig_y][orig_x]
-    destination = game.bord[des_y][des_x]
+    original = game.board[orig_y][orig_x]
+    destination = game.board[des_y][des_x]
 
     # Calculate movement vector
     d_x = des_x - orig_x
@@ -266,7 +276,7 @@ def is_legal_move_pawn(game, orig_x, orig_y, des_x, des_y):
         step_y = (d_y // abs(d_y)) if d_y != 0 else 0
         x, y = orig_x + step_x, orig_y + step_y
         while (x, y) != (des_x, des_y):
-            if game.bord[y][x] is not None:
+            if game.board[y][x] is not None:
                 return False
             x += step_x
             y += step_y
@@ -281,12 +291,12 @@ def is_legal_move_pawn(game, orig_x, orig_y, des_x, des_y):
 
 
 
-def king_pos(bord, color):
+def king_pos(board, color):
     """
     Find the position of the king of a given color on the board.
 
     Args:
-        bord (list): 2D list representing the board
+        board (list): 2D list representing the board
         color (int): Color of the king to find (WHITE or BLACK)
 
     Returns:
@@ -294,7 +304,7 @@ def king_pos(bord, color):
     """
     for y in range(8):
         for x in range(8):
-            piece = bord[y][x]
+            piece = board[y][x]
             if piece is not None:
                 if piece.type_piece == KING and piece.color == color:
                     return x, y
@@ -312,12 +322,16 @@ def is_check(game, color):
     Returns:
         bool: True if the king is in check, False otherwise
     """
-    pos = king_pos(game.bord, color)
+    pos = king_pos(game.board, color)
+    if game.reverse:
+        pos_2 = (7-pos[0], 7-pos[1])
+    else:
+        pos_2 = (pos[0], pos[1])
     if pos is None:
         return False
 
     # Visual feedback for check
-    pos_xy = chess_to_xy(pos)
+    pos_xy = chess_to_xy(pos_2)
     top_left_x = pos_xy[0] - CASE_SIZE // 2
     top_left_y = pos_xy[1] - CASE_SIZE // 2
 
@@ -325,13 +339,17 @@ def is_check(game, color):
     adversaire_color = -color
     for y in range(8):
         for x in range(8):
-            piece = game.bord[y][x]
+            piece = game.board[y][x]
             if piece is not None and piece.color == adversaire_color:
                 if is_legal_move(game, x, y, pos[0], pos[1], True):
                     # Highlight the king in check
                     pygame.draw.rect(game.screen, COLOR_CHECK, (top_left_x, top_left_y, CASE_SIZE, CASE_SIZE))
                     game.update()
-                    draw_move_arrow(game.screen, (x, y), pos)
+                    if game.reverse:
+                        draw_move_arrow(game.screen, (7-x, 7-y), pos_2)
+                    else:
+                        draw_move_arrow(game.screen, (x, y), pos_2)
+
                     return True
     return False
 
@@ -425,9 +443,9 @@ def is_safe_move(game, original_x, original_y, des_x, des_y, color):
     """
     # Create a copy of the board and simulate the move
     game.state = game.copy()
-    move_simu(game.state['bord'], original_x, original_y, des_x, des_y)
+    move_simu(game.state['board'], original_x, original_y, des_x, des_y)
     # Check if the king would be in check after the move
-    return not is_check_simu(game.state['bord'], color)
+    return not is_check_simu(game.state['board'], color)
 
 
 def is_select(game, event):
@@ -453,14 +471,14 @@ def is_select(game, event):
         for x in range(8):
             if selected_case[y][x]:
                 selected_case[y][x] = False
-                draw_bord(game.screen, game)
+                draw_board(game.screen, game)
                 game.update()
 
     # Check if a piece was clicked
-    for y in range(len(game.bord)):
-        for x in range(len(game.bord[y])):
-            if game.bord[y][x] is not None:
-                if game.bord[y][x].rect.collidepoint(event.pos):
+    for y in range(len(game.board)):
+        for x in range(len(game.board[y])):
+            if game.board[y][x] is not None:
+                if game.board[y][x].rect.collidepoint(event.pos):
                     # Highlight the selected square
                     highlight = pygame.Surface((CASE_SIZE, CASE_SIZE), pygame.SRCALPHA)
                     highlight.fill(SELECTION_COLOR_4)
@@ -490,28 +508,28 @@ def move(game, original_x, original_y, des_x, des_y):
     """
     # Check if move is legal
     if not is_legal_move(game, original_x, original_y, des_x, des_y):
-        draw_bord(game.screen, game)
+        draw_board(game.screen, game)
         game.update()
         return
 
     # Check if move is safe (doesn't leave king in check)
     if not is_safe_move(game, original_x, original_y, des_x, des_y, game.turn):
-        draw_bord(game.screen, game)
+        draw_board(game.screen, game)
         game.move_illegal_sound.play()
         game.update()
         return
 
     capture = False
     capture_piece = None
-    if game.bord[des_y][des_x] is not None:
+    if game.board[des_y][des_x] is not None:
         capture = True
-        capture_piece = game.bord[des_y][des_x]
-    piece = game.bord[original_y][original_x]
+        capture_piece = game.board[des_y][des_x]
+    piece = game.board[original_y][original_x]
 
     # Handle en passant
     if can_en_passant(game, original_x, original_y, des_x, des_y):
         capture = True
-        capture_piece = game.bord[original_y][des_x]
+        capture_piece = game.board[original_y][des_x]
         notation = execute_en_passant(game, original_x, original_y, des_x, des_y)
         game.capture_sound.play()
         game.last_move = {
@@ -556,14 +574,14 @@ def move(game, original_x, original_y, des_x, des_y):
             'promotion': False}
     else:
         # Execute normal move
-        promotion = game.bord[original_y][original_x].promotion(des_x, des_y)
+        promotion = game.board[original_y][original_x].promotion(des_x, des_y)
 
         # Generate algebraic notation
         notation = algebraic_notation(game, original_x, original_y, des_x, des_y, capture, game.check, game.checkmate,
                                       piece.type_piece, promotion)
         # Update board state
-        game.bord[des_y][des_x] = piece
-        game.bord[original_y][original_x] = None
+        game.board[des_y][des_x] = piece
+        game.board[original_y][original_x] = None
         piece.nb_move += 1
         game.last_move = {
             'piece_type': piece.type_piece,
@@ -582,15 +600,18 @@ def move(game, original_x, original_y, des_x, des_y):
 
 
 
-    draw_bord(game.screen, game)
+    draw_board(game.screen, game)
+
+    # Record the move
+    game.list_move.push(game.last_move)
 
     # Update game state
     if game.time is not None:
         game.increment(game.turn, game.increment_time)
+
     game.switch_turn()
     game.check = is_check(game, game.turn)
-    game.checkmate = game.is_checkmate(game.turn)
-    game.stalemate = game.is_stalemate(game.turn)
+    game.what_outcome()
     game.update()
 
 
@@ -598,7 +619,7 @@ def move(game, original_x, original_y, des_x, des_y):
     if game.checkmate:
         game.game_end_sound.play()
         notation += "#"
-    elif game.stalemate:
+    elif game.draw:
         game.game_end_sound.play()
     elif game.check:
         game.move_check_sound.play()
@@ -608,8 +629,7 @@ def move(game, original_x, original_y, des_x, des_y):
     else:
         game.move_self_sound.play()
 
-    # Record the move
-    game.list_move.push(game.last_move)
+
 
     return notation
 
@@ -618,48 +638,48 @@ def cancel_move(game):
     last_move = game.list_move.pop()
     if last_move is None:
         return
-    piece = game.bord[last_move['to_y']][last_move['to_x']]
+    piece = game.board[last_move['to_y']][last_move['to_x']]
     piece_eaten = last_move['capture_piece']
     if last_move['en_passant']:
-        game.bord[last_move['from_y']][last_move['from_x']] = piece
-        game.bord[last_move['from_y']][last_move['to_x']] = piece_eaten
-        game.bord[last_move['to_y']][last_move['to_x']] = None
+        game.board[last_move['from_y']][last_move['from_x']] = piece
+        game.board[last_move['from_y']][last_move['to_x']] = piece_eaten
+        game.board[last_move['to_y']][last_move['to_x']] = None
     elif last_move['castle']:
         if last_move['to_x'] == 6:
-            rook = game.bord[last_move['from_y']][5]
-            game.bord[last_move['from_y']][last_move['from_x']] = piece
-            game.bord[last_move['to_y']][last_move['to_x']] = None
-            game.bord[last_move['from_y']][5] = None
-            game.bord[last_move['from_y']][7] = rook
+            rook = game.board[last_move['from_y']][5]
+            game.board[last_move['from_y']][last_move['from_x']] = piece
+            game.board[last_move['to_y']][last_move['to_x']] = None
+            game.board[last_move['from_y']][5] = None
+            game.board[last_move['from_y']][7] = rook
 
         else:
-            rook = game.bord[last_move['from_y']][3]
-            game.bord[last_move['from_y']][last_move['from_x']] = piece
-            game.bord[last_move['to_y']][last_move['to_x']] = None
-            game.bord[last_move['from_y']][3] = None
-            game.bord[last_move['from_y']][0] = rook
+            rook = game.board[last_move['from_y']][3]
+            game.board[last_move['from_y']][last_move['from_x']] = piece
+            game.board[last_move['to_y']][last_move['to_x']] = None
+            game.board[last_move['from_y']][3] = None
+            game.board[last_move['from_y']][0] = rook
         rook.nb_move -= 1
     elif last_move['promotion']:
         piece.demotion()
         if piece_eaten is not None:
-            game.bord[last_move['from_y']][last_move['from_x']] = piece
-            game.bord[last_move['to_y']][last_move['to_x']] = piece_eaten
+            game.board[last_move['from_y']][last_move['from_x']] = piece
+            game.board[last_move['to_y']][last_move['to_x']] = piece_eaten
         else:
-            game.bord[last_move['from_y']][last_move['from_x']] = piece
-            game.bord[last_move['to_y']][last_move['to_x']] = None
+            game.board[last_move['from_y']][last_move['from_x']] = piece
+            game.board[last_move['to_y']][last_move['to_x']] = None
 
     else:
         if piece_eaten is not None:
-            game.bord[last_move['from_y']][last_move['from_x']] = piece
-            game.bord[last_move['to_y']][last_move['to_x']] = piece_eaten
+            game.board[last_move['from_y']][last_move['from_x']] = piece
+            game.board[last_move['to_y']][last_move['to_x']] = piece_eaten
         else:
-            game.bord[last_move['from_y']][last_move['from_x']] = piece
-            game.bord[last_move['to_y']][last_move['to_x']] = None
+            game.board[last_move['from_y']][last_move['from_x']] = piece
+            game.board[last_move['to_y']][last_move['to_x']] = None
 
     piece.nb_move -= 1
     game.last_move = game.list_move.peek()
     game.switch_turn()
-    draw_bord(game.screen, game)
+    draw_board(game.screen, game)
     game.update()
 
 
@@ -704,7 +724,7 @@ def create_pgn(list_coup,color,game):
             result = "0-1"
         elif color == BLACK and game.checkmate:
             result = "1-0"
-        elif game.stalemate:
+        elif game.draw:
             result = "1/2-1/2"
         else:
             result = "*"
@@ -727,13 +747,13 @@ def can_castle_king_side(game, color):
     """
     Vérify if the king side castle is possible
     """
-    king_x, king_row = king_pos(game.bord,color)
+    king_x, king_row = king_pos(game.board,color)
     rook_x = 7
 
     # We verify is the king and the rook didn't move
 
-    king = game.bord[king_row][king_x]
-    rook = game.bord[king_row][rook_x]
+    king = game.board[king_row][king_x]
+    rook = game.board[king_row][rook_x]
 
     if  king.color != color or king.nb_move > 0:
         return False
@@ -742,7 +762,7 @@ def can_castle_king_side(game, color):
 
     # Check that the squares between the king and the rook are empty
     for x in range(5, 7):
-        if game.bord[king_row][x] is not None:
+        if game.board[king_row][x] is not None:
             return False
 
     # Check that the king is not in check and does not pass through an attacked square.
@@ -761,13 +781,13 @@ def can_castle_queen_side(game, color):
     """
     Vérify if the king side castle is possible
     """
-    king_x, king_row = king_pos(game.bord,color)
+    king_x, king_row = king_pos(game.board,color)
     rook_x =  0
 
     # We verify if the king and the rook didn't move
 
-    king = game.bord[king_row][king_x]
-    rook = game.bord[king_row][rook_x]
+    king = game.board[king_row][king_x]
+    rook = game.board[king_row][rook_x]
 
     if  king.color != color or king.nb_move > 0:
         return False
@@ -777,7 +797,7 @@ def can_castle_queen_side(game, color):
     # Check that the squares between the king and the rook are empty
 
     for x in range(1, 4):
-        if game.bord[king_row][x] is not None:
+        if game.board[king_row][x] is not None:
             return False
 
     # Check that the king is not in check and does not pass through an attacked square.
@@ -808,21 +828,21 @@ def execute_castle(game, color, king_side=True):
         king_new_x, rook_old_x, rook_new_x = 2, 0, 3
 
     # Déplacer le roi
-    king = game.bord[king_row][4]
-    game.bord[king_row][king_new_x] = king
-    game.bord[king_row][4] = None
+    king = game.board[king_row][4]
+    game.board[king_row][king_new_x] = king
+    game.board[king_row][4] = None
     king.nb_move += 1
 
     # Déplacer la tour
-    rook = game.bord[king_row][rook_old_x]
-    game.bord[king_row][rook_new_x] = rook
-    game.bord[king_row][rook_old_x] = None
+    rook = game.board[king_row][rook_old_x]
+    game.board[king_row][rook_new_x] = rook
+    game.board[king_row][rook_old_x] = None
     rook.nb_move += 1
 
     return "O-O" if king_side else "O-O-O"
 
 def can_en_passant(game,orig_x,orig_y,des_x,des_y):
-    pawn = game.bord[orig_y][orig_x]
+    pawn = game.board[orig_y][orig_x]
     if pawn is None or pawn.type_piece != PAWN:
         return False
     color = pawn.color
@@ -834,7 +854,7 @@ def can_en_passant(game,orig_x,orig_y,des_x,des_y):
     if (dx,dy) not in pawn.movement_2:
         return False
 
-    adjacent_pawn = game.bord[orig_y][des_x]
+    adjacent_pawn = game.board[orig_y][des_x]
     if adjacent_pawn is None or adjacent_pawn.type_piece != PAWN or adjacent_pawn.color == color:
         return False
 
@@ -849,19 +869,19 @@ def can_en_passant(game,orig_x,orig_y,des_x,des_y):
     return False
 
 def execute_en_passant(game,orig_x,orig_y,des_x,des_y):
-    pawn = game.bord[orig_y][orig_x]
+    pawn = game.board[orig_y][orig_x]
     pawn.nb_move += 1
-    game.bord[orig_y][des_x] = None
-    game.bord[des_y][des_x] = pawn
-    game.bord[orig_y][orig_x] = None
+    game.board[orig_y][des_x] = None
+    game.board[des_y][des_x] = pawn
+    game.board[orig_y][orig_x] = None
     return f"{COLUMNS[orig_x]}x{COLUMNS[des_x]}{ROWS[des_y]}"
 
 
 def find_other_piece(game,orig_x,orig_y,type_piece):
     for y in range(8):
         for x in range(8):
-            if game.bord[y][x] is not None:
-                if game.bord[y][x].type_piece == type_piece and (x,y) != (orig_x,orig_y) and game.bord[y][x].color == game.bord[orig_y][orig_x].color:
+            if game.board[y][x] is not None:
+                if game.board[y][x].type_piece == type_piece and (x,y) != (orig_x,orig_y) and game.board[y][x].color == game.board[orig_y][orig_x].color:
                     return x,y
     return
 
