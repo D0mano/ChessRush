@@ -231,6 +231,7 @@ class Game:
 
 
 
+
     def start_game(self):
 
         self.screen.fill(BACKGROUND_COLOR)
@@ -259,7 +260,7 @@ class Game:
             if self.ai_enabled  and not self.end_game():
                 # On rafraîchit l'écran pour voir le dernier
                 pygame.display.flip()
-                if self.turn == WHITE:
+                if self.turn == BLACK:
                     print("The Black AI is thinking ...")
 
                     coup_ia = self.ai.get_best_move(depth=2)
@@ -269,7 +270,7 @@ class Game:
 
                     if coup_ia:
                         # On joue le coup avec la fonction normale qui gère l'affichage et le son
-                        movement = move(self, coup_ia[0], coup_ia[1], coup_ia[2], coup_ia[3])
+                        movement = move(self, coup_ia[0], coup_ia[1], coup_ia[2], coup_ia[3],isAi=True)
 
                         if movement is not None:
                             if self.turn == BLACK:
@@ -314,7 +315,8 @@ class Game:
                         self.reinitialise_game()
                     if event.key == pygame.K_c:
                         if not coup:
-                            list_coup.pop(len(list_coup)-1)
+                            if list_coup:
+                                coup.append(list_coup.pop(len(list_coup)-1)[0])
                         else:
                             coup = []
                         cancel_move(self)
@@ -322,6 +324,7 @@ class Game:
                         self.reverse = not self.reverse
                         draw_board(self.screen, self)
                         self.update()
+
 
 
 

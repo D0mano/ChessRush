@@ -512,3 +512,30 @@ PLATEAU_PUZZLE_4 = [
 
     [EMPTY, (BLACK, KING), EMPTY, EMPTY,(WHITE, KING), EMPTY, EMPTY, (WHITE, ROOK)]
 ]
+
+PLATEAU_EN_PASSANT_MAT = [
+    # Ligne 8 (index 0)
+    [EMPTY, EMPTY, EMPTY, EMPTY, (BLACK, KING), EMPTY, EMPTY, EMPTY],
+
+    # Ligne 7 (index 1)
+    [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
+
+    # Ligne 6 (index 2)
+    [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
+
+    # Ligne 5 (index 3)
+    [EMPTY, EMPTY, EMPTY, EMPTY, (BLACK, ROOK), EMPTY, EMPTY, EMPTY],
+
+    # Ligne 4 (index 4)
+    [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, (BLACK, PAWN), (BLACK, BISHOP), EMPTY],
+
+    # Ligne 3 (index 5)
+    [EMPTY, EMPTY, (WHITE, PAWN), (WHITE, PAWN), EMPTY, EMPTY, EMPTY, EMPTY],
+
+    # Ligne 2 (index 6)
+    [EMPTY, EMPTY, (WHITE, PAWN), (WHITE, KING), (WHITE, PAWN), EMPTY, EMPTY, EMPTY],
+
+    # Ligne 1 (index 7)
+    [EMPTY, EMPTY, (WHITE, PAWN), (WHITE, PAWN), (WHITE, PAWN), EMPTY, EMPTY, EMPTY]
+]
+

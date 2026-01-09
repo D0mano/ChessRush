@@ -1,3 +1,4 @@
+from classes.interface import select_promotion
 from utils.functions import *
 
 
@@ -27,6 +28,35 @@ class Pieces:
 
     def promotion(self,des_x,des_y):
         if self.type_piece == PAWN and self.color == WHITE and des_y == 0:
+            piece_type = select_promotion(self.game,self.color)
+            if piece_type == QUEEN:
+                self._promote_to_queen()
+            elif piece_type == ROOK:
+                self._promote_to_rook()
+            elif piece_type == BISHOP:
+                self._promote_to_bishop()
+            elif piece_type == KNIGHT:
+                self._promote_to_knight()
+
+            self.game.update()
+            return True
+        elif self.type_piece == PAWN and self.color == BLACK and des_y == 7:
+            piece_type = select_promotion(self.game,self.color)
+            if piece_type == QUEEN:
+                self._promote_to_queen()
+            elif piece_type == ROOK:
+                self._promote_to_rook()
+            elif piece_type == BISHOP:
+                self._promote_to_bishop()
+            elif piece_type == KNIGHT:
+                self._promote_to_knight()
+            self.game.update()
+
+            return True
+
+        return False
+    def promotion_ai(self,des_x,des_y):
+        if self.type_piece == PAWN and self.color == WHITE and des_y == 0:
             self._promote_to_queen()
             self.game.update()
             return True
@@ -34,8 +64,10 @@ class Pieces:
             self._promote_to_queen()
             self.game.update()
             return True
-
         return False
+
+
+
     def demotion(self):
         self.__class__ = Pawn
         self.type_piece = PAWN
@@ -70,6 +102,57 @@ class Pieces:
 
         self.movement = QUEEN_DIRECTION
         self.movement_type = SLIDING
+
+        self.rect = self.image.get_rect(center=(chess_to_xy((self.x, self.y))))
+        self.game.update()
+
+    def _promote_to_rook(self):
+        self.__class__ = Rook
+        self.type_piece = ROOK
+
+        if self.color == WHITE:
+            self.image = pygame.image.load(f"assets/{self.path}/white-rook.png")
+
+        else:
+            self.image = pygame.image.load(f"assets/{self.path}/black-rook.png")
+        self.image = pygame.transform.smoothscale(self.image, (SIZE_PIECES, SIZE_PIECES))
+
+        self.movement = ROOK_DIRECTION
+        self.movement_type = SLIDING
+
+        self.rect = self.image.get_rect(center=(chess_to_xy((self.x, self.y))))
+        self.game.update()
+
+    def _promote_to_bishop(self):
+        self.__class__ = Bishop
+        self.type_piece = BISHOP
+
+        if self.color == WHITE:
+            self.image = pygame.image.load(f"assets/{self.path}/white-bishop.png")
+
+        else:
+            self.image = pygame.image.load(f"assets/{self.path}/black-bishop.png")
+        self.image = pygame.transform.smoothscale(self.image, (SIZE_PIECES, SIZE_PIECES))
+
+        self.movement = BISHOP_DIRECTION
+        self.movement_type = SLIDING
+
+        self.rect = self.image.get_rect(center=(chess_to_xy((self.x, self.y))))
+        self.game.update()
+
+    def _promote_to_knight(self):
+        self.__class__ = Knight
+        self.type_piece = KNIGHT
+
+        if self.color == WHITE:
+            self.image = pygame.image.load(f"assets/{self.path}/white-knight.png")
+
+        else:
+            self.image = pygame.image.load(f"assets/{self.path}/black-knight.png")
+        self.image = pygame.transform.smoothscale(self.image, (SIZE_PIECES, SIZE_PIECES))
+
+        self.movement = KNIGHT_DIRECTION
+        self.movement_type = JUMPING
 
         self.rect = self.image.get_rect(center=(chess_to_xy((self.x, self.y))))
         self.game.update()

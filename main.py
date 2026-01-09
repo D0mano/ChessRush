@@ -27,7 +27,7 @@ while game.running:
 
 
         if screen.get_width() != GAME_WINDOW_WIDTH:
-            screen = pygame.display.set_mode((GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT))
+            screen = pygame.display.set_mode((GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT),pygame.FULLSCREEN | pygame.NOFRAME )
         game.set_screen(screen)
             
         game.set_board(PLATEAU_INITIAL)

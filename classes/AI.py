@@ -100,7 +100,7 @@ def is_collinear(v1, v2):
     return v1[0] * v2[1] - v1[1] * v2[0] == 0
 
 
-def is_legal_move_simu(board, o_x, o_y, d_x, d_y):
+def is_legal_move_simu(state, o_x, o_y, d_x, d_y):
     """
     Check if a move is legal in a simulated board state (used for move validation).
 
@@ -114,6 +114,7 @@ def is_legal_move_simu(board, o_x, o_y, d_x, d_y):
     Returns:
         bool: True if the move is legal, False otherwise
     """
+    board = state['board']
     case_sta = board[o_y][o_x]
     case_end = board[d_y][d_x]
     distance_x = d_x - o_x
@@ -123,9 +124,9 @@ def is_legal_move_simu(board, o_x, o_y, d_x, d_y):
     if case_sta[PIECE_TYPE] == KING:
         if (distance_x,distance_y) not in KING_DIRECTION:
             if (case_sta[PIECE_COLOR] == WHITE and (d_x, d_y) == QUEEN_SIDE_CASTLE[1]) or (case_sta[PIECE_COLOR] == BLACK and (d_x, d_y) == QUEEN_SIDE_CASTLE[0])  and case_sta[PIECE_NB_MOVEMENT] == 0:
-                    return can_castle_queen_side_simu(board, case_sta[PIECE_COLOR])
+                    return can_castle_queen_side_simu(state, case_sta[PIECE_COLOR])
             elif (case_sta[PIECE_COLOR] == WHITE and (d_x, d_y) == KING_SIDE_CASTLE[1]) or (case_sta[PIECE_COLOR] == BLACK and (d_x, d_y) == KING_SIDE_CASTLE[0]) and case_sta[PIECE_NB_MOVEMENT] == 0:
-                    return can_castle_king_side_simu(board, case_sta[PIECE_COLOR])
+                    return can_castle_king_side_simu(state, case_sta[PIECE_COLOR])
 
     # Handle non-pawn pieces
     if case_sta[0] != PAWN:
@@ -161,15 +162,15 @@ def is_legal_move_simu(board, o_x, o_y, d_x, d_y):
             return True
     else:
         # Handle pawn moves
-        return is_legal_move_pawn_simu(board, o_x, o_y, d_x, d_y)
+        return is_legal_move_pawn_simu(state, o_x, o_y, d_x, d_y)
 
 
-def is_legal_move_pawn_simu(board, o_x, o_y, d_x, d_y):
+def is_legal_move_pawn_simu(state, o_x, o_y, d_x, d_y):
     """
     Check if a pawn move is legal in a simulated board state.
 
     Args:
-        board (list): 2D list representing the board state
+        state (dict): A dictionary representing the state of the board and various information about the move.
         o_x (int): Origin x coordinate
         o_y (int): Origin y coordinate
         d_x (int): Destination x coordinate
@@ -178,6 +179,7 @@ def is_legal_move_pawn_simu(board, o_x, o_y, d_x, d_y):
     Returns:
         bool: True if the pawn move is legal, False otherwise
     """
+    board = state['board']
     original = board[o_y][o_x]
     destination = board[d_y][d_x]
     color = original[1]
@@ -186,12 +188,17 @@ def is_legal_move_pawn_simu(board, o_x, o_y, d_x, d_y):
     distance_x = d_x - o_x
     distance_y = d_y - o_y
 
+    #Check is en passant is possible
+    if can_en_passant_simu(state,o_x, o_y, d_x, d_y):
+        return True
+
+
     # Check diagonal capture moves based on color
     if color == WHITE:
         if (distance_x, distance_y) in DIRECTIONS_WHITE_PAWN_2 and destination is not None and destination[PIECE_COLOR] == BLACK:
             return True
         # Check forward moves
-        if original[3] == 0:  # Pawn hasn't moved
+        if original[PIECE_NB_MOVEMENT] == 0:  # Pawn hasn't moved
             valid_direction = (distance_x, distance_y) in DIRECTIONS_WHITE_PAWN_1
         else:
             valid_direction = (distance_x, distance_y) in DIRECTIONS_WHITE_PAWN
@@ -222,11 +229,17 @@ def is_legal_move_pawn_simu(board, o_x, o_y, d_x, d_y):
     return False
 
 
-def is_safe_move_simu(board, original_x, original_y, des_x, des_y, color):
+def is_safe_move_simu(state, original_x, original_y, des_x, des_y, color):
     # Shallow copy for speed
-    temp_board = [row[:] for row in board]
-    move_simu(temp_board, original_x, original_y, des_x, des_y)
-    return not is_check_simu(temp_board, color)
+    temp_state = {'board':[row[:] for row in state['board']],
+                 'last_move_info':state['last_move_info'],
+                 'turn':state['turn'],
+                 'nb_turn':state['nb_turn'],
+                 'move_history':state['move_history'],
+                 }
+
+    move_simu(temp_state['board'], original_x, original_y, des_x, des_y)
+    return not is_check_simu(temp_state, color)
 
 
 def move_simu(board,o_x,o_y,d_x,d_y):
@@ -246,7 +259,7 @@ def pieces_remaining_simu(board):
     return pieces
 
 
-def is_check_simu(board, color):
+def is_check_simu(state, color):
     """
     Check if the king is in check in a simulated board state.
 
@@ -257,6 +270,7 @@ def is_check_simu(board, color):
     Returns:
         bool: True if the king is in check, False otherwise
     """
+    board = state['board']
     pos = king_pos_simu(board, color)
     if pos is None:
         return False
@@ -267,7 +281,7 @@ def is_check_simu(board, color):
         for x in range(8):
             piece = board[y][x]
             if piece is not None and piece[1] == adversary_color:
-                if is_legal_move_simu(board, x, y, pos[0], pos[1]):
+                if is_legal_move_simu(state, x, y, pos[0], pos[1]):
                     return True
     return False
 
@@ -275,7 +289,7 @@ def is_check_simu(board, color):
 def is_stalemate_simu(state,is_check,color):
     if is_check:
         return False
-    if not generate_legal_moves(state['board'], color):
+    if not generate_legal_moves(state, color):
         return True
     return False
 
@@ -314,7 +328,7 @@ def is_draw_simu(state,color,is_check=False):
 
 
 def outcome_simu(state,color):
-    if is_check_simu(state['board'],color):
+    if is_check_simu(state,color):
         return CHECK
     elif is_draw_simu(state,color):
         return DRAW
@@ -369,10 +383,11 @@ def can_en_passant_simu(state, orig_x, orig_y, des_x, des_y):
     return False
 
 
-def can_castle_king_side_simu(board, color):
+def can_castle_king_side_simu(state, color):
     """
     Vérify if the king side castle is possible
     """
+    board = state['board']
     if color == WHITE:
         if board[7][4] is None:
             return False
@@ -405,21 +420,22 @@ def can_castle_king_side_simu(board, color):
             return False
 
     # Check that the king is not in check and does not pass through an attacked square.
-    if is_check_simu(board, color):
+    if is_check_simu(state, color):
         return False
 
     # Simulate the king's movement square by square
     for x in range(4, 7):
-        if not is_safe_move_simu(board, king_x, king_row, x, king_row, color):
+        if not is_safe_move_simu(state, king_x, king_row, x, king_row, color):
             return False
 
     return True
 
 
-def can_castle_queen_side_simu(board, color):
+def can_castle_queen_side_simu(state, color):
     """
     Vérify if the king side castle is possible
     """
+    board = state['board']
     if color == WHITE:
         if board[7][4] is None:
             return False
@@ -454,13 +470,13 @@ def can_castle_queen_side_simu(board, color):
 
     # Check that the king is not in check and does not pass through an attacked square.
 
-    if is_check_simu(board, color):
+    if is_check_simu(state, color):
         return False
 
     # Simulate the king's movement square by square
 
     for x in range(4, 1, -1):
-        if not is_safe_move_simu(board, king_x, king_row, x, king_row, color):
+        if not is_safe_move_simu(state, king_x, king_row, x, king_row, color):
             return False
 
     return True
@@ -494,7 +510,8 @@ def execute_castle_simu(state, color, king_side=True):
         board[king_row][rook_old_x] = None
 
 
-def generate_legal_moves(board: list, color: int) -> list:
+def generate_legal_moves(state: dict, color: int) -> list:
+    board = state['board']
     legal_moves = []
     for o_y in range(len(board)):
         for o_x in range(len(board[o_y])):
@@ -502,8 +519,8 @@ def generate_legal_moves(board: list, color: int) -> list:
             if piece is not None and piece[PIECE_COLOR] == color:
                 for d_y in range(len(board)):
                     for d_x in range(len(board[o_y])):
-                        if is_legal_move_simu(board, o_x, o_y, d_x, d_y) and \
-                                is_safe_move_simu(board, o_x, o_y, d_x, d_y, color):
+                        if is_legal_move_simu(state, o_x, o_y, d_x, d_y) and \
+                                is_safe_move_simu(state, o_x, o_y, d_x, d_y, color):
                             legal_moves.append((o_x, o_y, d_x, d_y))
     return legal_moves
 
@@ -594,9 +611,9 @@ def is_endgame(state):
     return total_material(state) < 1300
 
 
-def mobility_eval(board):
-    white_moves = len(generate_legal_moves(board, WHITE))
-    black_moves = len(generate_legal_moves(board, BLACK))
+def mobility_eval(state):
+    white_moves = len(generate_legal_moves(state, WHITE))
+    black_moves = len(generate_legal_moves(state, BLACK))
     return (white_moves - black_moves) * 5
 
 
@@ -687,11 +704,11 @@ class AI:
 
     def minimax(self, state, depth, alpha, beta, maximizing_player):
         current_color = state['turn']
-        possible_moves = generate_legal_moves(state['board'], current_color)
+        possible_moves = generate_legal_moves(state, current_color)
         possible_moves.sort(key=lambda m:score_move(state['board'],m), reverse=True)
 
         if not possible_moves:
-            if is_check_simu(state['board'], current_color):
+            if is_check_simu(state, current_color):
                 return (-1000000 if maximizing_player else 1000000), None
             else:
                 return 0, None
@@ -711,6 +728,7 @@ class AI:
                 new_state = {
                     'board': new_board,
                     'turn': state['turn'],
+                    'nb_turn': state['nb_turn'],
                     'last_move_info': state['last_move_info'],
                     'move_history' : state['move_history']
                 }
@@ -731,6 +749,7 @@ class AI:
                 new_state = {
                     'board': new_board,
                     'turn': state['turn'],
+                    'nb_turn': state['nb_turn'],
                     'last_move_info': state['last_move_info'],
                     'move_history': state['move_history']
                 }

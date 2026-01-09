@@ -445,7 +445,7 @@ def is_safe_move(game, original_x, original_y, des_x, des_y, color):
     game.state = game.copy()
     move_simu(game.state['board'], original_x, original_y, des_x, des_y)
     # Check if the king would be in check after the move
-    return not is_check_simu(game.state['board'], color)
+    return not is_check_simu(game.state, color)
 
 
 def is_select(game, event):
@@ -492,7 +492,7 @@ def is_select(game, event):
                     return des_x, des_y
 
 
-def move(game, original_x, original_y, des_x, des_y):
+def move(game, original_x, original_y, des_x, des_y,isAi=False):
     """
     Execute a move on the chess board with full validation and game state updates.
 
@@ -573,8 +573,12 @@ def move(game, original_x, original_y, des_x, des_y):
             'capture_piece': capture_piece,
             'promotion': False}
     else:
-        # Execute normal move
-        promotion = game.board[original_y][original_x].promotion(des_x, des_y)
+        if isAi:
+            promotion = game.board[original_y][original_x].promotion_ai(des_x, des_y)
+
+        else:
+            # Execute normal move
+            promotion = game.board[original_y][original_x].promotion(des_x, des_y)
 
         # Generate algebraic notation
         notation = algebraic_notation(game, original_x, original_y, des_x, des_y, capture, game.check, game.checkmate,

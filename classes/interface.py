@@ -17,6 +17,8 @@ class Button:
         self.hover = False
         if icon_path is not None:
             self.icon = pygame.image.load(icon_path)
+        else:
+            self.icon = None
 
     def draw(self, screen):
         #Draw the rounded rectangle
@@ -45,6 +47,35 @@ class Button:
         self.hover = True
     def end_hover_effect(self):
         self.hover = False
+
+class IconButton:
+    def __init__(self, icon_path,pos_center,background,resize=None,padding=(20, 10),bg_color=(33, 32, 31)):
+        self.icon = pygame.image.load(icon_path)
+        if resize is not None:
+            self.icon = pygame.transform.scale(self.icon, (resize[0], resize[1]))
+        self.icon_rect = self.icon.get_rect(center=pos_center)
+        if background:
+            self.bg_rect = self.icon_rect.inflate(padding[0] * 2, padding[1] * 2)
+            self.bg_color = bg_color
+        else:
+            self.bg_rect = None
+            self.bg_color = None
+
+    def draw(self, screen):
+            # Draw the rounded rectangle
+            if self.bg_rect is not None:
+                pygame.draw.rect(screen, self.bg_color, self.bg_rect, border_radius=20)
+
+            # Draw the icon
+            screen.blit(self.icon, self.icon_rect)
+
+    def is_clicked(self, event):
+            if event.type == pygame.MOUSEBUTTONUP:
+                if self.icon_rect.collidepoint(event.pos):
+                    return True
+            return False
+
+
 
 
 
@@ -158,6 +189,56 @@ def display_timer(game):
 
         pygame.draw.rect(game.screen, BACKGROUND_COLOR, surface_rect_2)
         game.screen.blit(text_2, rect_2)
+
+
+def select_promotion(game,color):
+    if color == WHITE:
+        queen_button = IconButton(f"assets/{game.path}/white-queen.png",
+                                  ((OFFSET_PLATEAU_X + BORD_WIDTH) + (OFFSET_PLATEAU_X / 2)- 75, (GAME_WINDOW_HEIGHT  / 2)),False,(50,50))
+        rook_button = IconButton(f"assets/{game.path}/white-rook.png",
+                                 ((OFFSET_PLATEAU_X + BORD_WIDTH) + (OFFSET_PLATEAU_X / 2)- 25, (GAME_WINDOW_HEIGHT  / 2)),False,(50,50))
+        bishop_button = IconButton(f"assets/{game.path}/white-bishop.png",
+                                   ((OFFSET_PLATEAU_X + BORD_WIDTH) + (OFFSET_PLATEAU_X / 2)+ 25, (GAME_WINDOW_HEIGHT  / 2)),False,(50,50))
+        knight_button = IconButton(f"assets/{game.path}/white-knight.png",
+                                   ((OFFSET_PLATEAU_X + BORD_WIDTH) + (OFFSET_PLATEAU_X / 2)+ 75, (GAME_WINDOW_HEIGHT  / 2)),False,(50,50))
+    else:
+        queen_button = IconButton(f"assets/{game.path}/white-queen.png",
+                                  ((OFFSET_PLATEAU_X + BORD_WIDTH) + (OFFSET_PLATEAU_X / 2) - 75,
+                                   (GAME_WINDOW_HEIGHT / 2)), False, (50, 50))
+        rook_button = IconButton(f"assets/{game.path}/white-rook.png",
+                                 ((OFFSET_PLATEAU_X + BORD_WIDTH) + (OFFSET_PLATEAU_X / 2) - 25,
+                                  (GAME_WINDOW_HEIGHT / 2)), False, (50, 50))
+        bishop_button = IconButton(f"assets/{game.path}/white-bishop.png",
+                                   ((OFFSET_PLATEAU_X + BORD_WIDTH) + (OFFSET_PLATEAU_X / 2) + 25,
+                                    (GAME_WINDOW_HEIGHT / 2)), False, (50, 50))
+        knight_button = IconButton(f"assets/{game.path}/white-knight.png",
+                                   ((OFFSET_PLATEAU_X + BORD_WIDTH) + (OFFSET_PLATEAU_X / 2) + 75,
+                                    (GAME_WINDOW_HEIGHT / 2)), False, (50, 50))
+    remove_rect = pygame.Rect(0,0,4*60,60)
+    remove_rect.center = ((OFFSET_PLATEAU_X + BORD_WIDTH) + (OFFSET_PLATEAU_X // 2),(GAME_WINDOW_HEIGHT // 2))
+    run = True
+    while run:
+        pygame.display.flip()
+        queen_button.draw(game.screen)
+        rook_button.draw(game.screen)
+        bishop_button.draw(game.screen)
+        knight_button.draw(game.screen)
+        piece_type = None
+        for event in pygame.event.get():
+            if queen_button.is_clicked(event):
+                run = False
+                piece_type = QUEEN
+            elif rook_button.is_clicked(event):
+                run = False
+                piece_type = ROOK
+            elif bishop_button.is_clicked(event):
+                run = False
+                piece_type = BISHOP
+            elif knight_button.is_clicked(event):
+                run = False
+                piece_type = KNIGHT
+    pygame.draw.rect(game.screen, BACKGROUND_COLOR, remove_rect)
+    return piece_type
 
 
 def main_menu(game,screen):
