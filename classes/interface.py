@@ -78,8 +78,6 @@ class IconButton:
 
 
 
-
-
 def display_current_player(game):
     """
     Display the current player's turn on the game screen.
@@ -99,6 +97,38 @@ def display_current_player(game):
         rect = text.get_rect(center=(OFFSET_PLATEAU_X / 2, (GAME_WINDOW_HEIGHT - OFFSET_PLATEAU_Y) / 2))
         pygame.draw.rect(game.screen, BACKGROUND_COLOR, rect)
         game.screen.blit(text, rect)
+
+def display_move_history(game ,list_coup):
+    """
+    Display the move history with the pgn notation
+    :param game: Game object containing the screen surface
+    :param list_coup: The list of all the movement played by the player in the format : [[1 mov withe,1 mov black],[2 mov white,2 move black],...]
+    """
+    last_moves = list_coup
+    if len(last_moves) > 12:
+        last_moves = last_moves[-12:]
+
+    font = pygame.font.SysFont("arial", 20)
+    background_rect = pygame.Rect(0,0,(GAME_WINDOW_WIDTH-(OFFSET_PLATEAU_X + BORD_WIDTH) )*0.7,BORD_HEIGHT*0.4)
+    background_rect.center=((OFFSET_PLATEAU_X + BORD_WIDTH) + OFFSET_PLATEAU_X // 2 + 15, GAME_WINDOW_HEIGHT // 2)
+    test = pygame.Rect(0,0,GAME_WINDOW_WIDTH,GAME_WINDOW_HEIGHT)
+    pygame.draw.rect(game.screen, (70,70,70), background_rect)
+
+    for i in range(len(last_moves)):
+        coup = last_moves[i]
+        nb_coup = len(list_coup) - len(last_moves) + i + 1
+        nb_coup_text = font.render(f"{nb_coup}.",True, TEXT_COLOR)
+        nb_coup_rect = nb_coup_text.get_rect(x=background_rect.x + 10 ,y=background_rect.y+10 + i*20)
+        game.screen.blit(nb_coup_text, nb_coup_rect)
+        for j in range(len(coup)):
+            text = font.render(f"{coup[j]}",True, TEXT_COLOR)
+            text_rect = text.get_rect(x=background_rect.x + 40 + j*60,y=background_rect.y+10 + i*20)
+            game.screen.blit(text, text_rect)
+
+
+
+
+
 
 
 def display_timer(game):
@@ -374,7 +404,6 @@ def opponent_selecting(game, screen):
                 game.in_opponent_selection = False
                 game.in_ath_selection = True
                 return
-
 
 
 def mode_selecting(game, screen):

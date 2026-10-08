@@ -160,10 +160,6 @@ class Game:
 
 
 
-
-
-
-
     def is_pat(self,color):
         if  self.check:
             return False
@@ -233,6 +229,8 @@ class Game:
 
 
     def start_game(self):
+        coup = []
+        list_coup = []
 
         self.screen.fill(BACKGROUND_COLOR)
         display_current_player(self)
@@ -241,8 +239,7 @@ class Game:
         selected_square = None
         self.game_start_sound.play()
         self.update()
-        coup = []
-        list_coup = []
+
         if self.time is not None:
             self.start_time()
         while self.is_playing:
@@ -302,11 +299,12 @@ class Game:
                             if movement is not None:
                                 if self.turn == BLACK:
                                     coup.append(movement)
+                                    list_coup.append(coup)
 
                                 else:
-                                    coup.append(movement)
-                                    list_coup.append(coup)
+                                    list_coup[-1].append(movement)
                                     coup = []
+                                print(list_coup)
 
                         selected_square = None
                 if event.type == pygame.KEYDOWN:
@@ -314,22 +312,22 @@ class Game:
                         self.is_playing = False
                         self.reinitialise_game()
                     if event.key == pygame.K_c:
-                        if not coup:
-                            if list_coup:
-                                coup.append(list_coup.pop(len(list_coup)-1)[0])
-                        else:
-                            coup = []
+                        if list_coup:
+                            if len(list_coup[-1]) <= 1:
+                                list_coup.pop()
+                                coup = []
+                            else:
+                                list_coup[-1].pop()
+                                coup = list_coup[-1]
+
+
                         cancel_move(self)
                     if event.key == pygame.K_r:
                         self.reverse = not self.reverse
                         draw_board(self.screen, self)
                         self.update()
 
-
-
-
-
-
+            display_move_history(self, list_coup)
 
             pygame.display.flip()
         if coup:
